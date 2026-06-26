@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --bg2: #151517;
+    --bg3: #1c1c1f;
+    --border: #2a2a2e;
+    --border2: #3a3a3f;
+    --text: #e8e6e0;
+    --text2: #9a9890;
+    --text3: #5a5855;
+    --accent: #c8b97a;
+    --accent2: #8fa89e;
+    --red: #c47a6a;
+    --green: #7aab8a;
+    --blue: #7a9abf;
+    --purple: #a08abf;
+    --orange: #c49060;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 48px 48px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .header-left h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .header-left h1 span { color: var(--accent); font-style: italic; }
+
+  .header-meta {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 8px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 32px;
+    align-items: flex-end;
+  }
+
+  .stat {
+    text-align: right;
+  }
+
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  /* ── FILTERS ── */
+  .filters {
+    padding: 16px 48px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 8px;
+  }
+
+  .filter-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 5px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,185,122,0.06); }
+
+  .search-input {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    border-radius: 2px;
+    outline: none;
+    width: 220px;
+    margin-left: auto;
+  }
+
+  .search-input:focus { border-color: var(--border2); }
+  .search-input::placeholder { color: var(--text3); }
+
+  /* ── GRID ── */
+  .grid {
+    padding: 32px 48px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 2px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--border));
+    transition: all 0.2s;
+  }
+
+  .card:hover {
+    background: var(--bg3);
+    border-color: var(--border2);
+    transform: translateY(-1px);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .card-type {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    border: 1px solid var(--border);
+    padding: 3px 7px;
+    border-radius: 2px;
+    white-space: nowrap;
+    margin-left: 12px;
+    margin-top: 3px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .meta-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--card-accent, var(--text3));
+    flex-shrink: 0;
+  }
+
+  /* progress bar */
+  .progress-wrap {
+    margin-bottom: 16px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--card-accent, var(--accent));
+    border-radius: 1px;
+    transition: width 0.6s ease;
+  }
+
+  /* next step */
+  .next-step {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 2px;
+    margin-bottom: 14px;
+  }
+
+  .next-step-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+
+  .next-step-text {
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* directory */
+  .dir-path {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .dir-path:hover { border-color: var(--border2); color: var(--text2); }
+
+  .dir-path span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .copy-icon {
+    opacity: 0.4;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+
+  .dir-path:hover .copy-icon { opacity: 0.8; }
+
+  /* status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+
+  .status-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+  .status-idea     { color: var(--text3);  border-color: var(--border);  }  
+  .status-planning { color: var(--blue);   border-color: rgba(122,154,191,0.3); }
+  .status-building { color: var(--orange); border-color: rgba(196,144,96,0.3); }
+  .status-active   { color: var(--green);  border-color: rgba(122,171,138,0.3); }
+  .status-paused   { color: var(--red);    border-color: rgba(196,122,106,0.3); }
+
+  /* modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    width: 100%;
+    max-width: 640px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .modal-header {
+    padding: 28px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg2);
+  }
+
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .modal-subtitle { font-size: 12px; color: var(--text2); }
+
+  .modal-close {
+    position: absolute;
+    top: 24px; right: 24px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    width: 28px; height: 28px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+
+  .modal-close:hover { border-color: var(--border2); color: var(--text); }
+
+  .modal-body { padding: 24px 28px; }
+
+  .modal-section { margin-bottom: 24px; }
+  .modal-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-desc { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+  .step-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .step-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .step-num {
+    font-size: 10px;
+    color: var(--text3);
+    min-width: 18px;
+    padding-top: 1px;
+  }
+
+  .step-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text2);
+  }
+
+  /* edit fields */
+  .edit-field {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    width: 100%;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.15s;
+    resize: vertical;
+  }
+
+  .edit-field:focus { border-color: var(--accent); }
+
+  .save-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 8px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    transition: opacity 0.15s;
+    text-transform: uppercase;
+  }
+
+  .save-btn:hover { opacity: 0.85; }
+
+  /* empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 48px;
+    color: var(--text3);
+    font-size: 13px;
+  }
+
+  .empty-state span {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  /* notification */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 16px;
+    font-size: 11px;
+    border-radius: 2px;
+    z-index: 300;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 600px) {
+    header { padding: 24px 20px 20px; flex-direction: column; align-items: flex-start; gap: 16px; }
+    .filters { padding: 12px 20px; }
+    .grid { padding: 20px; grid-template-columns: 1fr; }
+    .search-input { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Project <span>OS</span></h1>
+    <div class="header-meta" id="header-date">Loading...</div>
+  </div>
+  <div class="header-stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label">Projects</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-active">0</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-building">0</div>
+      <div class="stat-label">Building</div>
+    </div>
+  </div>
+</header>
+
+<div class="filters">
+  <span class="filter-label">Filter</span>
+  <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+  <button class="filter-btn" onclick="setFilter('consumer', this)">Consumer</button>
+  <button class="filter-btn" onclick="setFilter('tool', this)">Personal Tool</button>
+  <button class="filter-btn" onclick="setFilter('community', this)">Community</button>
+  <button class="filter-btn" onclick="setFilter('infra', this)">Infra / R&D</button>
+  <button class="filter-btn" onclick="setFilter('creative', this)">Creative</button>
+  <button class="filter-btn status-building" style="margin-left:8px" onclick="setStatusFilter('building', this)">Building</button>
+  <button class="filter-btn status-planning" onclick="setStatusFilter('planning', this)">Planning</button>
+  <input class="search-input" type="text" placeholder="search projects..." oninput="handleSearch(this.value)" />
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-inner">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-subtitle" id="modal-subtitle"></div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const PROJECTS = [
+  {
+    id: 1,
+    name: "Tend",
+    type: "consumer",
+    typeLabel: "Consumer App",
+    desc: "Social CRM with professional crossover. Relationship management that bridges personal and professional networks.",
+    status: "active",
+    progress: 25,
+    accentColor: "#a08abf",
+    dir: "~/Projects/tend",
+    tags: ["social", "CRM", "networking", "iOS"],
+    nextStep: "Define core differentiation from existing CRMs (Clay, Dex). Sketch the data model for contacts + interaction history.",
+    steps: [
+      "Competitive analysis: Clay, Dex, Monica, Notion CRM",
+      "Define the personal/professional crossover UX",
+      "CoreData schema for Contact, Interaction, Reminder",
+      "MVP: contact list + manual interaction log",
+      "Sync with iPhone Contacts and Calendar"
+    ]
+  },
+  {
+    id: 2,
+    name: "NutriPuzzle",
+    type: "consumer",
+    typeLabel: "Consumer App",
+    desc: "Enhanced food tracking focused on micronutrient data to reduce supplement dependency. Features a community-driven feedback system for food database expansions and feature requests, with a monetized prioritization queue — requests are ordered by volume-weighted time signatures (first come, first served with gravity from request count), and users can pay to accelerate their item up the queue.",
+    status: "active",
+    progress: 30,
+    accentColor: "#7aab8a",
+    dir: "~/Projects/nutripuzzle",
+    tags: ["health", "nutrition", "food tracking", "supplements", "community", "monetization", "queue"],
+    nextStep: "Design the queue data model before anything else: a request needs a type (food item vs. feature), a timestamp, a vote count, an optional boost payment, and a status (pending / in-science-review / in-progress / shipped). The ranking formula is the core IP.",
+    steps: [
+      "Integrate USDA FoodData Central API as baseline database",
+      "Define micronutrient gap analysis algorithm",
+      "Design the 'puzzle' gamification mechanic for tracking engagement",
+      "Build food search + log UI",
+      "Request submission system: food items + feature requests with type tagging",
+      "Queue ranking formula: f(submission_time, vote_count, boost_payment)",
+      "Science review sub-queue: items flagged as lacking reliable data held separately",
+      "Payment layer: users pay to boost their request's queue position",
+      "Admin dashboard: queue visibility, status updates, community changelog",
+      "Weekly micronutrient report + food suggestions per user"
+    ]
+  },
+  {
+    id: 3,
+    name: "HOAMI",
+    type: "consumer",
+    typeLabel: "Consumer App",
+    desc: "Home Asset Management OS. Predictive maintenance scheduling, regional demand pooling for services, and home inventory intelligence.",
+    status: "active",
+    progress: 30,
+    accentColor: "#c49060",
+    dir: "~/Projects/hoami",
+    tags: ["home", "IoT", "maintenance", "marketplace"],
+    nextStep: "Define the three pillars separately: (1) asset registry, (2) maintenance scheduler, (3) demand pooling marketplace. Decide which is the wedge product.",
+    steps: [
+      "Define asset data model (appliance, warranty, maintenance history)",
+      "Build manual asset entry + photo capture",
+      "Maintenance schedule rules engine",
+      "Regional demand pooling MVP (local service matching)",
+      "Push notifications for upcoming maintenance"
+    ]
+  },
+  {
+    id: 4,
+    name: "Dinnerds",
+    type: "community",
+    typeLabel: "Community",
+    desc: "Intimate dinners of 10–15 academics and deep nerds in the Bay Area. Expert-led short presentation followed by semi-structured dinner conversation.",
+    status: "active",
+    progress: 60,
+    accentColor: "#c8b97a",
+    dir: "~/Projects/dinnerds",
+    tags: ["events", "community", "Bay Area", "intellectual"],
+    nextStep: "Build a simple invite + RSVP system. Curate a running list of potential speakers and topics. Decide on cadence (monthly?).",
+    steps: [
+      "Define invite/curation criteria for attendees",
+      "Build lightweight RSVP + guest management tool",
+      "Speaker pipeline: running list of topics + contacts",
+      "Post-event notes system (connects to PKS)",
+      "Consider a simple landing page for visibility"
+    ]
+  },
+  {
+    id: 5,
+    name: "Urban Spatial Analytics",
+    type: "tool",
+    typeLabel: "R&D / Tool",
+    desc: "Spatial data analysis tooling for urban environments. Likely intersects with policy, real estate, infrastructure, and mobility datasets.",
+    status: "idea",
+    progress: 5,
+    accentColor: "#7a9abf",
+    dir: "~/Projects/urban-spatial",
+    tags: ["GIS", "urban planning", "data", "Python"],
+    nextStep: "Define the specific problem you want to solve first. Is this a toolkit, a product, or a research project? Pick one city and one dataset to start.",
+    steps: [
+      "Define scope: research tool vs. product vs. API",
+      "Identify anchor dataset (census, OSM, zoning, transit)",
+      "Set up GeoPandas + PostGIS local environment",
+      "Build first analysis: choose one concrete question",
+      "Visualization layer (deck.gl or Kepler.gl)"
+    ]
+  },
+  {
+    id: 6,
+    name: "JobaBOTchi",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "Job bot that auto-drafts highly tailored resumes and cover letters when you text it a job description link.",
+    status: "planning",
+    progress: 30,
+    accentColor: "#c47a6a",
+    dir: "~/Projects/jobabotchi",
+    tags: ["automation", "LLM", "SMS", "career"],
+    nextStep: "Set up a Twilio number + webhook. Build the URL scraper for job descriptions. Wire to Claude API for resume/cover letter generation against a base resume.",
+    steps: [
+      "Set up Twilio SMS webhook (Python/Flask)",
+      "Build job description scraper (Playwright or Jina AI)",
+      "Store your base resume as a structured prompt context",
+      "Claude API: tailored resume + cover letter generation",
+      "Return formatted output via SMS or email"
+    ]
+  },
+  {
+    id: 7,
+    name: "Agentic Commerce",
+    type: "infra",
+    typeLabel: "Infra / R&D",
+    desc: "Infrastructure experiments for AI agents with constrained spending. Limited wallet access + guardrail parameters for autonomous purchasing.",
+    status: "planning",
+    progress: 15,
+    accentColor: "#a08abf",
+    dir: "~/Projects/agentic-commerce",
+    tags: ["AI agents", "payments", "infrastructure", "guardrails"],
+    nextStep: "Research existing primitives: Stripe Issuing for virtual cards, Circle for crypto wallets. Define the guardrail parameter schema first.",
+    steps: [
+      "Define guardrail schema: merchant categories, spend limits, time windows",
+      "Prototype with Stripe Issuing (virtual card per agent)",
+      "Build a simple agent that can purchase within limits",
+      "Audit log + anomaly detection layer",
+      "Open-source the guardrail framework"
+    ]
+  },
+  {
+    id: 8,
+    name: "Calendar Travel Buddy",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "AI agent that auto-selects transport mode and route based on real-time congestion and your calendar events.",
+    status: "idea",
+    progress: 10,
+    accentColor: "#7a9abf",
+    dir: "~/Projects/cal-travel-buddy",
+    tags: ["AI agent", "calendar", "maps", "iOS"],
+    nextStep: "Start with a simple iOS Shortcut that reads your next calendar event, passes the location to Google Maps API with real-time traffic, and suggests the mode.",
+    steps: [
+      "Build iOS Shortcut: next event → Maps query",
+      "Integrate Google Maps Directions API (multi-modal)",
+      "Add real-time transit delays (511 SF Bay API)",
+      "Calendar parsing: extract location from event details",
+      "Decision logic: when to walk vs. drive vs. transit"
+    ]
+  },
+  {
+    id: 9,
+    name: "Networking Executive Assistant",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "Data lake processor for weekly notes. Cleans inputs, surfaces actionable insights, generates follow-up lists and commitment tracking.",
+    status: "active",
+    progress: 70,
+    accentColor: "#c8b97a",
+    dir: "~/Projects/pks",
+    tags: ["PKS", "LLM", "productivity", "Swift"],
+    nextStep: "This IS the PKS system — refer to the Architecture & Work Plan doc. Next step: set up Xcode project and implement CoreData schema.",
+    steps: [
+      "⟶ See PKS_Architecture_Workplan.docx",
+      "Phase 1: Xcode setup + CoreData schema",
+      "Phase 2: Claude API processing loop",
+      "Phase 3: iPhone Notes ingestion pipeline",
+      "Phase 4: Knowledge views + Action Board"
+    ]
+  },
+  {
+    id: 10,
+    name: "Knowledge Graph DB",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "Personal knowledge graph for professional and entrepreneurial relationships. Nodes for people, ideas, orgs, events with weighted edges.",
+    status: "active",
+    progress: 25,
+    accentColor: "#7a9abf",
+    dir: "~/Projects/knowledge-graph",
+    tags: ["graph DB", "relationships", "PKS", "Neo4j"],
+    nextStep: "Decide: build as a module inside PKS or standalone? If standalone, set up Neo4j locally and define the node/edge schema. If PKS module, this is Phase 4.",
+    steps: [
+      "Decide: PKS module vs. standalone",
+      "Define node types: Person, Org, Idea, Event, Project",
+      "Define edge types: met_at, works_at, shared_idea, introduced",
+      "Set up Neo4j local instance OR use CoreData relationships",
+      "Build query interface: 'who connects me to X?'"
+    ]
+  },
+  {
+    id: 11,
+    name: "Video Text Extractor",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "Text extraction from videos, especially screen recordings. OCR on video frames with deduplication and structured output.",
+    status: "idea",
+    progress: 10,
+    accentColor: "#7aab8a",
+    dir: "~/Projects/video-text-extractor",
+    tags: ["OCR", "video", "Python", "Vision"],
+    nextStep: "Test ffmpeg + Tesseract pipeline on a sample screen recording. Extract frames at 1fps, OCR each, deduplicate repeated text across frames.",
+    steps: [
+      "Set up ffmpeg frame extraction (1fps or keyframes)",
+      "Run Tesseract OCR on extracted frames",
+      "Deduplication: hash frames, skip near-duplicates",
+      "Structured output: timestamp + text per unique frame",
+      "Optional: Apple Vision framework for higher accuracy"
+    ]
+  },
+  {
+    id: 12,
+    name: "Content Machine — Analysis",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "Social media video processing pipeline. Analyzes trends and delivers insights for virality experiments and audience reach optimization.",
+    status: "idea",
+    progress: 5,
+    accentColor: "#c47a6a",
+    dir: "~/Projects/content-analysis",
+    tags: ["social media", "video", "trend analysis", "LLM"],
+    nextStep: "Pick one platform to start (TikTok or YouTube Shorts). Use their API or a scraper to pull trending content metadata. Define what 'insight' means to you.",
+    steps: [
+      "Choose platform + data source (API vs. scraper)",
+      "Define insight schema: hook patterns, audio trends, format",
+      "Build ingestion pipeline for video metadata",
+      "Claude API: pattern analysis + experiment suggestions",
+      "Weekly digest output format"
+    ]
+  },
+  {
+    id: 13,
+    name: "Content Machine — Production",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "Automation pipeline for drafting edited long-form and short-form content from raw source files (notes, voice, video).",
+    status: "idea",
+    progress: 5,
+    accentColor: "#c49060",
+    dir: "~/Projects/content-production",
+    tags: ["content", "automation", "editing", "LLM"],
+    nextStep: "Define your raw → finished content workflow manually first. What does a raw file look like? What does the finished piece look like? Then automate the diff.",
+    steps: [
+      "Document your current manual content workflow",
+      "Define input formats: voice memo, notes, raw video",
+      "Build transcript → structured outline pipeline",
+      "Claude API: draft long-form from outline",
+      "Short-form slicer: extract clips/quotes from long-form"
+    ]
+  },
+  {
+    id: 14,
+    name: "HW/SW Stack Alignment",
+    type: "infra",
+    typeLabel: "Infra / R&D",
+    desc: "System for routing AI tasks to appropriate models based on complexity, cost, and compute. GPU vs CPU allocation with future TPU consideration.",
+    status: "planning",
+    progress: 20,
+    accentColor: "#a08abf",
+    dir: "~/Projects/stack-alignment",
+    tags: ["MLOps", "routing", "GPU", "infrastructure"],
+    nextStep: "Build a simple task classifier that scores complexity 1–5 and maps to a model tier (local Ollama / Claude Haiku / Claude Sonnet / Claude Opus). Test with real tasks.",
+    steps: [
+      "Define task taxonomy: complexity dimensions + cost tiers",
+      "Build complexity classifier (can use Claude to classify)",
+      "Model routing table: local → Haiku → Sonnet → Opus",
+      "Instrument actual costs per task type",
+      "GPU/CPU routing: integrate with local Ollama for simple tasks"
+    ]
+  },
+  {
+    id: 15,
+    name: "Music Production Drafter",
+    type: "creative",
+    typeLabel: "Creative Tool",
+    desc: "Capture system for lyrics and melodies with approximation playback. Bridging the gap between raw musical ideas and produceable drafts.",
+    status: "idea",
+    progress: 5,
+    accentColor: "#c8b97a",
+    dir: "~/Projects/music-drafter",
+    tags: ["music", "audio", "MIDI", "creative"],
+    nextStep: "Start with capture: a simple voice memo → transcription → lyrics storage pipeline. Melody approximation via pitch detection (pYIN algorithm) comes second.",
+    steps: [
+      "Voice capture + transcription for lyrics (SFSpeechRecognizer)",
+      "Lyrics storage with versioning (CoreData or flat files)",
+      "Pitch detection from hummed melodies (pYIN / CREPE)",
+      "MIDI approximation from detected pitch contour",
+      "Basic playback with tempo/key adjustment"
+    ]
+  },
+  {
+    id: 22,
+    name: "Soma OS",
+    type: "tool",
+    typeLabel: "Personal Tool",
+    desc: "Personal health and performance operating system. Tracks bodybuilding and athletic training alongside biomarkers (VO2 max, testosterone, cholesterol, hormones, blood pressure) and functional movement quality across strength, stability, flexibility, and endurance — with special focus on hip and spine joint health.",
+    status: "idea",
+    progress: 5,
+    accentColor: "#c47a6a",
+    dir: "~/Projects/soma-os",
+    tags: ["health", "fitness", "biomarkers", "bodybuilding", "joints", "tracking"],
+    nextStep: "Before building anything, define the three tracking layers separately: (1) training logs, (2) lab biomarkers, (3) functional movement assessments. Each has a different cadence and input method — daily, quarterly, and monthly respectively.",
+    steps: [
+      "Define tracking schema: training (daily), biomarkers (quarterly), movement (monthly)",
+      "Training log: exercise, sets, reps, weight, perceived exertion, notes",
+      "Biomarker log: VO2 max, testosterone, cholesterol panel, hormones, blood pressure + date",
+      "Movement quality assessment: per-joint scores for strength / stability / flexibility / endurance",
+      "Hip + spine protocol: define specific assessment battery for these priority groups",
+      "Trend visualization: progress curves per metric over time",
+      "Connect to Apple Health for passive data (HRV, resting HR, sleep)",
+      "Periodic review digest: monthly summary of all three layers with delta from prior period"
+    ]
+  },
+  {
+    id: 20,
+    name: "Linguistic Activist",
+    type: "community",
+    typeLabel: "Community / Language",
+    desc: "Two-part platform: (1) crowdsourced coinage of words that should exist, with a pipeline toward popular adoption; (2) a concept visualization library — graphs, charts, and visual snippets that help people see and share abstract patterns. Both arms share the same mission: making the ineffable communicable.",
+    status: "idea",
+    progress: 10,
+    accentColor: "#a08abf",
+    dir: "~/Projects/linguistic-activist",
+    tags: ["language", "crowdsourcing", "community", "linguistics", "visualization", "concepts", "viral"],
+    nextStep: "Define the two content types and whether they live in one unified feed or separate sections. A word entry and a concept visual are different artifacts — decide early if they're siblings or the same thing with different renderers.",
+    steps: [
+      "Define content schema for both types: word entries + concept visuals",
+      "Decide unified feed vs. separate sections (or tag-filtered single surface)",
+      "Build word submission + upvote interface",
+      "Build concept visual submission: upload or embed chart/graph/snippet + caption",
+      "Moderation + curation layer for quality control",
+      "Popularization pipeline: social, newsletter, media — track adoption signals",
+      "Visualization tool layer: let users generate simple visuals natively (not just upload)",
+      "Partner with linguists, educators, science communicators for credibility"
+    ]
+  },
+  {
+    id: 21,
+    name: "Distal Coffee",
+    type: "community",
+    typeLabel: "Social App",
+    desc: "Two or more people set a future coffee date anchored to a disagreement or prediction. Both parties spend the intervening time assembling arguments and tracking real-world evidence. The loser buys the coffee.",
+    status: "idea",
+    progress: 10,
+    accentColor: "#c8b97a",
+    dir: "~/Projects/distal-coffee",
+    tags: ["social", "predictions", "debate", "epistemics", "community"],
+    nextStep: "Build the core mechanic as a dead-simple web app: state the disagreement, set the date, invite the other party, and give both a shared evidence board to log arguments and events as they happen.",
+    steps: [
+      "Define the disagreement schema: claim, counter-claim, resolution criteria, date",
+      "Build shared evidence board: both parties log events + arguments over time",
+      "Resolution mechanic: how is the winner determined? Self-report, vote, or arbiter?",
+      "Notification layer: remind both parties to log evidence as news breaks",
+      "Social layer: make bets public or shareable for spectators",
+      "Connect to PKS: log Distal Coffee outcomes as relationship + idea data"
+    ]
+  },
+  {
+    id: 18,
+    name: "Megadeal",
+    type: "consumer",
+    typeLabel: "Real Estate / Fintech",
+    desc: "Housing development model that relocates existing property owners during demolition and construction, densifies to a financially feasible threshold, then returns the prior owner to one of the new units with small equity shares from additional unit sales.",
+    status: "planning",
+    progress: 20,
+    accentColor: "#7aab8a",
+    dir: "~/Projects/megadeal",
+    tags: ["housing", "real estate", "densification", "fintech", "equity", "development"],
+    nextStep: "Build the financial model first: given a single-family lot, what density threshold makes the deal work after relocation costs, construction, and returning owner equity? Model in a spreadsheet before any software.",
+    steps: [
+      "Build pro forma: land cost, demolition, relocation, construction, unit mix",
+      "Define owner equity formula: share of proceeds from N additional units",
+      "Identify regulatory pathway: ADU law, SB9, or full rezoning required?",
+      "Map pilot city: which markets have the right land value + zoning flexibility?",
+      "Legal structure: what entity holds the deal during construction?",
+      "Software layer: deal modeling tool for owners + developers"
+    ]
+  },
+  {
+    id: 19,
+    name: "pTOD",
+    type: "consumer",
+    typeLabel: "Real Estate / Mobility",
+    desc: "Private Transportation Oriented Development. Suburban housing developments with reduced parking infrastructure, bundled with discounted annual ride-hailing plans for residents — creating a captive, high-retention customer base for mobility partners.",
+    status: "planning",
+    progress: 15,
+    accentColor: "#c47a6a",
+    dir: "~/Projects/ptod",
+    tags: ["housing", "mobility", "ride-hailing", "parking", "suburban", "TOD"],
+    nextStep: "Model the parking cost savings vs. ride-hail subsidy cost. Parking spaces in suburban developments run $15–30k each — that's your subsidy budget. Then identify which ride-hail partners have appetite for captive market deals.",
+    steps: [
+      "Model: parking space cost savings vs. annual ride-hail subsidy per unit",
+      "Define partnership term sheet with ride-hail co (Uber/Lyft/Via)",
+      "Identify target suburban markets: low transit, high car-dependency",
+      "Regulatory check: which municipalities allow reduced parking minimums?",
+      "Resident value prop: what annual plan cost makes this attractive?",
+      "Pilot: identify one development partner willing to test the model"
+    ]
+  },
+  {
+    id: 17,
+    name: "Flaneur Tour du Jour",
+    type: "creative",
+    typeLabel: "Video Series",
+    desc: "Walking tour video series exploring urban development, placemaking, civil engineering, and 21st century city-building case studies. Expert interviews filmed on location.",
+    status: "active",
+    progress: 35,
+    accentColor: "#8fa89e",
+    dir: "~/Projects/flaneur-tour",
+    tags: ["video", "urbanism", "placemaking", "documentary", "interviews"],
+    nextStep: "Define episode format: solo walking tour vs. expert interview vs. hybrid. Build a location + guest pipeline. Set up a simple production folder structure for raw footage, edits, and published cuts.",
+    steps: [
+      "Define episode format and runtime (5min? 20min?)",
+      "Build guest + location pipeline: running list of experts and sites",
+      "Set up production folder structure (raw / edit / export / published)",
+      "Connect to Content Machine — Production for editing automation",
+      "Define publishing cadence and platform strategy (YouTube, Substack?)",
+      "Consider a companion written piece per episode (connects to PKS)"
+    ]
+  },
+  {
+    id: 16,
+    name: "Handwriting Fine-Tuning",
+    type: "infra",
+    typeLabel: "CV / ML",
+    desc: "Computer vision system trained on architectural facade photography and personal handwriting to improve edge-case OCR accuracy.",
+    status: "idea",
+    progress: 5,
+    accentColor: "#7a9abf",
+    dir: "~/Projects/handwriting-finetune",
+    tags: ["computer vision", "OCR", "fine-tuning", "ML"],
+    nextStep: "Collect 50–100 samples of your own handwriting as labeled ground truth. Use Apple Vision as baseline, measure error rate, then fine-tune a small model on your edge cases.",
+    steps: [
+      "Collect + label 50–100 personal handwriting samples",
+      "Baseline: Apple Vision OCR accuracy on your handwriting",
+      "Identify error pattern categories",
+      "Fine-tune small vision model (TrOCR or Apple CreateML)",
+      "Integrate improved model back into PKS photo ingestion"
+    ]
+  }
+];
+
+// ── STATE ──
+let activeFilter = 'all';
+let activeStatusFilter = null;
+let searchQuery = '';
+let projects = JSON.parse(localStorage.getItem('projects') || 'null') || PROJECTS;
+
+// ── RENDER ──
+function getStatusClass(s) {
+  return { idea: 'status-idea', planning: 'status-planning', building: 'status-building', active: 'status-active', paused: 'status-paused' }[s] || 'status-idea';
+}
+
+function getStatusLabel(s) {
+  return { idea: 'Idea', planning: 'Planning', building: 'Building', active: 'Active', paused: 'Paused' }[s] || s;
+}
+
+function renderCard(p) {
+  return `
+    <div class="card" style="--card-accent: ${p.accentColor}" onclick="openModal(${p.id})">
+      <div class="card-header">
+        <div class="card-title">${p.name}</div>
+        <div class="card-type">${p.typeLabel}</div>
+      </div>
+      <div class="card-desc">${p.desc}</div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-dot"></div>
+          <span class="status-badge ${getStatusClass(p.status)}">
+            <span class="status-dot" style="background:currentColor"></span>
+            ${getStatusLabel(p.status)}
+          </span>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Progress</span><span>${p.progress}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%"></div></div>
+      </div>
+      <div class="next-step">
+        <div class="next-step-label">Next Step</div>
+        <div class="next-step-text">${p.nextStep}</div>
+      </div>
+      <div class="dir-path" onclick="copyPath(event, '${p.dir}')">
+        <span>${p.dir}</span>
+        <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </div>
+    </div>`;
+}
+
+function renderGrid() {
+  const filtered = projects.filter(p => {
+    const matchType = activeFilter === 'all' || p.type === activeFilter;
+    const matchStatus = !activeStatusFilter || p.status === activeStatusFilter;
+    const matchSearch = !searchQuery || 
+      p.name.toLowerCase().includes(searchQuery) || 
+      p.desc.toLowerCase().includes(searchQuery) ||
+      p.tags.some(t => t.toLowerCase().includes(searchQuery));
+    return matchType && matchStatus && matchSearch;
+  });
+
+  const grid = document.getElementById('grid');
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span>◎</span>No projects match this filter.</div>`;
+  } else {
+    grid.innerHTML = filtered.map(renderCard).join('');
+  }
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = projects.length;
+  document.getElementById('stat-active').textContent = projects.filter(p => p.status === 'active').length;
+  document.getElementById('stat-building').textContent = projects.filter(p => p.status === 'building').length;
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+// ── FILTERS ──
+function setFilter(type, btn) {
+  activeFilter = type;
+  activeStatusFilter = null;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function setStatusFilter(status, btn) {
+  if (activeStatusFilter === status) {
+    activeStatusFilter = null;
+    btn.classList.remove('active');
+  } else {
+    activeStatusFilter = status;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      if (b !== btn && ['building','planning','active','paused','idea'].some(s => b.onclick?.toString().includes(s))) {
+        b.classList.remove('active');
+      }
+    });
+    btn.classList.add('active');
+  }
+  renderGrid();
+}
+
+function handleSearch(val) {
+  searchQuery = val.toLowerCase();
+  renderGrid();
+}
+
+// ── MODAL ──
+function openModal(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('modal-title').textContent = p.name;
+  document.getElementById('modal-subtitle').textContent = p.typeLabel + ' · ' + getStatusLabel(p.status);
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">Description</div>
+      <div class="modal-desc">${p.desc}</div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Tags</div>
+      <div class="tag-list">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Build Steps</div>
+      <div class="step-list">${p.steps.map((s,i) => `
+        <div class="step-item">
+          <span class="step-num">${String(i+1).padStart(2,'0')}</span>
+          <span class="step-text">${s}</span>
+        </div>`).join('')}</div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Directory</div>
+      <div class="dir-path" onclick="copyPath(event, '${p.dir}')">
+        <span>${p.dir}</span>
+        <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2v1"/></svg>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Edit — Next Step</div>
+      <textarea class="edit-field" id="edit-next" rows="3">${p.nextStep}</textarea>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Edit — Directory Path</div>
+      <input class="edit-field" id="edit-dir" value="${p.dir}" />
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">Edit — Status & Progress</div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        ${['idea','planning','building','active','paused'].map(s => `
+          <button class="filter-btn ${p.status===s?'active':''}" 
+            style="${p.status===s?'border-color:'+p.accentColor+';color:'+p.accentColor:''}"
+            onclick="setCardStatus(${id},'${s}',this)">${getStatusLabel(s)}</button>
+        `).join('')}
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <input type="range" id="edit-progress" min="0" max="100" value="${p.progress}" 
+          style="flex:1;accent-color:${p.accentColor}" oninput="document.getElementById('prog-val').textContent=this.value+'%'">
+        <span id="prog-val" style="color:var(--text2);font-size:12px;min-width:36px">${p.progress}%</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="save-btn" onclick="saveCard(${id})">Save Changes</button>
+    </div>
+  `;
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function setCardStatus(id, status, btn) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  p.status = status;
+  btn.closest('.modal-section').querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.borderColor = ''; b.style.color = '';
+  });
+  btn.classList.add('active');
+  btn.style.borderColor = p.accentColor;
+  btn.style.color = p.accentColor;
+}
+
+function saveCard(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  p.nextStep = document.getElementById('edit-next').value;
+  p.dir = document.getElementById('edit-dir').value;
+  p.progress = parseInt(document.getElementById('edit-progress').value);
+  localStorage.setItem('projects', JSON.stringify(projects));
+  renderGrid();
+  showToast('Saved ✓');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+// ── UTILS ──
+function copyPath(e, path) {
+  e.stopPropagation();
+  navigator.clipboard.writeText(path).then(() => showToast('Path copied'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModalDirect();
+});
+
+// ── INIT ──
+renderGrid();
+</script>
+</body>
+</html>

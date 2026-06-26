@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project PM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0e0e0f;
+  --bg2:     #141416;
+  --bg3:     #1a1a1d;
+  --bg4:     #222226;
+  --border:  #262629;
+  --border2: #333338;
+  --text:    #e8e6e0;
+  --text2:   #9a9890;
+  --text3:   #55534f;
+  --gold:    #c8a84a;
+  --gold2:   #e8c86a;
+  --green:   #6a9e7a;
+  --blue:    #6a8aaf;
+  --red:     #b06a5a;
+  --purple:  #8a72a8;
+  --orange:  #b87a40;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 24px;
+}
+.topbar-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text);
+  white-space: nowrap;
+}
+.topbar-title span { color: var(--gold); font-style: italic; }
+.topbar-link {
+  font-size: 10px;
+  color: var(--text3);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.topbar-link:hover { color: var(--gold); border-color: var(--gold); }
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.week-label {
+  font-size: 11px;
+  color: var(--text2);
+  min-width: 160px;
+  text-align: center;
+}
+.week-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 26px; height: 26px;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.week-btn:hover { border-color: var(--gold); color: var(--gold); }
+.today-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.today-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar-section {
+  padding: 16px 0 8px;
+}
+.sidebar-heading {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text3);
+  padding: 0 16px 8px;
+}
+.proj-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-left: 2px solid transparent;
+}
+.proj-tab:hover { background: var(--bg2); }
+.proj-tab.active {
+  background: var(--bg3);
+  border-left-color: var(--proj-color, var(--gold));
+}
+.proj-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--proj-color, var(--gold));
+  flex-shrink: 0;
+}
+.proj-name {
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.proj-tab.active .proj-name { color: var(--text); }
+.proj-progress-mini {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.sidebar-stats {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mini-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text3);
+}
+.mini-stat span:last-child { color: var(--gold); }
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── PROJECT HEADER ── */
+.proj-header {
+  padding: 24px 32px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-shrink: 0;
+}
+.proj-header-left {}
+.proj-header-title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.proj-header-title .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--proj-color);
+}
+.proj-header-meta {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 6px;
+}
+.proj-header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.add-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--proj-color, var(--gold));
+  color: var(--bg);
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+.add-btn:hover { opacity: 0.85; }
+.add-btn-ghost {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+}
+.add-btn-ghost:hover { border-color: var(--proj-color, var(--gold)); color: var(--proj-color, var(--gold)); opacity: 1; }
+
+/* ── OVERALL PROGRESS BAR ── */
+.overall-progress {
+  padding: 12px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.progress-track {
+  flex: 1;
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--proj-color, var(--gold));
+  transition: width 0.5s ease;
+}
+.progress-pct {
+  font-size: 11px;
+  color: var(--text2);
+  min-width: 36px;
+  text-align: right;
+}
+.progress-label-sm {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  min-width: 80px;
+}
+
+/* ── CONTENT AREA ── */
+.content {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  flex: 1;
+}
+
+/* ── MILESTONES ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text3);
+}
+.section-add {
+  font-size: 10px;
+  color: var(--text3);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 2px;
+  background: none;
+  font-family: 'DM Mono', monospace;
+  transition: all 0.15s;
+}
+.section-add:hover { color: var(--proj-color, var(--gold)); border-color: var(--proj-color, var(--gold)); }
+
+.milestones {
+  display: flex;
+  gap: 0;
+  position: relative;
+}
+.milestones::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: var(--border2);
+}
+.milestone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  cursor: pointer;
+}
+.milestone-node {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text3);
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s;
+}
+.milestone.done .milestone-node {
+  background: var(--proj-color, var(--gold));
+  border-color: var(--proj-color, var(--gold));
+  color: var(--bg);
+}
+.milestone.active .milestone-node {
+  border-color: var(--proj-color, var(--gold));
+  color: var(--proj-color, var(--gold));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--proj-color, var(--gold)) 20%, transparent);
+}
+.milestone-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-align: center;
+  max-width: 90px;
+  line-height: 1.4;
+}
+.milestone.done .milestone-label,
+.milestone.active .milestone-label { color: var(--text2); }
+.milestone-date {
+  font-size: 9px;
+  color: var(--text3);
+  text-align: center;
+}
+.milestone.active .milestone-date { color: var(--proj-color, var(--gold)); }
+
+/* ── TASK COLUMNS ── */
+.task-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.task-col {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.task-col-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.task-col-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-col-title::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--col-color, var(--text3));
+}
+.task-count {
+  font-size: 10px;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.task-list {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 80px;
+}
+.task-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.task-card:hover { border-color: var(--border2); background: var(--bg4); }
+.task-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--task-color, var(--border2));
+  border-radius: 2px 0 0 2px;
+}
+.task-title {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.task-tag {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--bg2);
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.task-due {
+  font-size: 10px;
+  color: var(--text3);
+  margin-left: auto;
+}
+.task-due.overdue { color: var(--red); }
+.task-due.soon { color: var(--orange); }
+
+/* ── WEEKLY FOCUS ── */
+.weekly-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.weekly-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.weekly-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+}
+.weekly-range {
+  font-size: 10px;
+  color: var(--gold);
+}
+.weekly-tasks {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.weekly-task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.weekly-task:last-child { border-bottom: none; }
+.wtask-check {
+  width: 16px; height: 16px;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  transition: all 0.15s;
+}
+.weekly-task.done .wtask-check {
+  background: var(--proj-color, var(--gold));
+  border-color: var(--proj-color, var(--gold));
+  color: var(--bg);
+}
+.wtask-text {
+  font-size: 12px;
+  color: var(--text2);
+  flex: 1;
+  line-height: 1.4;
+}
+.weekly-task.done .wtask-text {
+  text-decoration: line-through;
+  color: var(--text3);
+}
+.wtask-proj {
+  font-size: 9px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  background: var(--bg3);
+  border-radius: 2px;
+}
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.modal-hdr {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-hdr-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+.modal-close {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 26px; height: 26px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.modal-close:hover { border-color: var(--red); color: var(--red); }
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.field-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 5px;
+}
+.field-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  width: 100%;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--gold); }
+.field-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  width: 100%;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.field-row { display: flex; gap: 12px; }
+.field-row > div { flex: 1; }
+.modal-footer {
+  padding: 14px 24px 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+.btn-primary {
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  padding: 8px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 8px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+.btn-danger {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--red);
+  padding: 8px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 2px;
+  margin-right: auto;
+  transition: all 0.15s;
+}
+.btn-danger:hover { border-color: var(--red); background: rgba(176,106,90,0.1); }
+
+/* toast */
+.toast {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 9px 14px;
+  font-size: 11px;
+  border-radius: 2px;
+  z-index: 300;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all 0.2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* empty col */
+.empty-col {
+  padding: 16px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 11px;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-title">Project <span>PM</span></div>
+  <a class="topbar-link" href="projects.html">← Dashboard</a>
+  <div class="week-nav">
+    <button class="week-btn" onclick="shiftWeek(-1)">‹</button>
+    <div class="week-label" id="week-label">—</div>
+    <button class="week-btn" onclick="shiftWeek(1)">›</button>
+    <button class="today-btn" onclick="goToToday()">Today</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Active Projects</div>
+      <div id="proj-tabs"></div>
+    </div>
+    <div class="sidebar-stats" id="sidebar-stats"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div id="proj-header"></div>
+    <div id="overall-progress"></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="overlay" id="task-overlay" onclick="closeOverlay('task-overlay', event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-title" id="task-modal-title">Add Task</div>
+      <button class="modal-close" onclick="closeOverlayDirect('task-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">Task Title</div>
+        <input class="field-input" id="t-title" placeholder="What needs to be done?" />
+      </div>
+      <div>
+        <div class="field-label">Description (optional)</div>
+        <textarea class="field-input" id="t-desc" rows="2" placeholder="More detail..."></textarea>
+      </div>
+      <div class="field-row">
+        <div>
+          <div class="field-label">Status</div>
+          <select class="field-select" id="t-status">
+            <option value="backlog">Backlog</option>
+            <option value="thisweek">This Week</option>
+            <option value="inprogress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Priority</div>
+          <select class="field-select" id="t-priority">
+            <option value="high">High</option>
+            <option value="mid">Mid</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <div class="field-label">Due Date</div>
+          <input class="field-input" id="t-due" type="date" />
+        </div>
+        <div>
+          <div class="field-label">Milestone</div>
+          <select class="field-select" id="t-milestone"></select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">This Week's Focus?</div>
+        <select class="field-select" id="t-weekly">
+          <option value="no">No</option>
+          <option value="yes">Yes — add to weekly focus</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="t-delete-btn" onclick="deleteTask()" style="display:none">Delete</button>
+      <button class="btn-ghost" onclick="closeOverlayDirect('task-overlay')">Cancel</button>
+      <button class="btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- MILESTONE MODAL -->
+<div class="overlay" id="ms-overlay" onclick="closeOverlay('ms-overlay', event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-title" id="ms-modal-title">Add Milestone</div>
+      <button class="modal-close" onclick="closeOverlayDirect('ms-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">Milestone Name</div>
+        <input class="field-input" id="ms-name" placeholder="e.g. MVP Launch" />
+      </div>
+      <div class="field-row">
+        <div>
+          <div class="field-label">Target Date</div>
+          <input class="field-input" id="ms-date" type="date" />
+        </div>
+        <div>
+          <div class="field-label">Status</div>
+          <select class="field-select" id="ms-status">
+            <option value="upcoming">Upcoming</option>
+            <option value="active">Active</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="ms-delete-btn" onclick="deleteMilestone()" style="display:none">Delete</button>
+      <button class="btn-ghost" onclick="closeOverlayDirect('ms-overlay')">Cancel</button>
+      <button class="btn-primary" onclick="saveMilestone()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── PROJECT DEFINITIONS (synced with projects.html colors) ──
+const PROJECTS = [
+  { id: 'dinnerds',     name: 'Dinnerds',               color: '#c8b97a', type: 'Community' },
+  { id: 'networking-ea',name: 'Networking EA',           color: '#c8b97a', type: 'Personal Tool' },
+  { id: 'hoami',        name: 'HOAMI',                   color: '#c49060', type: 'Consumer App' },
+  { id: 'nutripuzzle',  name: 'NutriPuzzle',             color: '#7aab8a', type: 'Consumer App' },
+  { id: 'tend',         name: 'Tend',                    color: '#a08abf', type: 'Consumer App' },
+  { id: 'knowledge-graph', name: 'Knowledge Graph DB',  color: '#7a9abf', type: 'Personal Tool' },
+  { id: 'flaneur',      name: 'Flaneur Tour du Jour',    color: '#8fa89e', type: 'Video Series' },
+];
+
+// ── SEED DATA ──
+const SEED = {
+  'dinnerds': {
+    milestones: [
+      { id: 'ms1', name: 'First Event', date: '2026-03-28', status: 'active' },
+      { id: 'ms2', name: 'RSVP System', date: '2026-04-18', status: 'upcoming' },
+      { id: 'ms3', name: 'Speaker Pipeline', date: '2026-05-09', status: 'upcoming' },
+      { id: 'ms4', name: 'Landing Page', date: '2026-06-06', status: 'upcoming' },
+    ],
+    tasks: [
+      { id: 't1', title: 'Finalize guest list for first dinner', status: 'thisweek', priority: 'high', due: '2026-03-20', milestone: 'ms1', weekly: true },
+      { id: 't2', title: 'Confirm venue + date', status: 'inprogress', priority: 'high', due: '2026-03-18', milestone: 'ms1', weekly: true },
+      { id: 't3', title: 'Draft speaker brief and topic format', status: 'backlog', priority: 'mid', due: '', milestone: 'ms1', weekly: false },
+      { id: 't4', title: 'Build RSVP form (Tally or Typeform)', status: 'backlog', priority: 'mid', due: '2026-04-10', milestone: 'ms2', weekly: false },
+      { id: 't5', title: 'Create post-event notes template for PKS', status: 'backlog', priority: 'low', due: '', milestone: '', weekly: false },
+    ]
+  },
+  'networking-ea': {
+    milestones: [
+      { id: 'ms1', name: 'Xcode Setup', date: '2026-03-21', status: 'active' },
+      { id: 'ms2', name: 'CoreData Schema', date: '2026-03-28', status: 'upcoming' },
+      { id: 'ms3', name: 'Claude API Loop', date: '2026-04-11', status: 'upcoming' },
+      { id: 'ms4', name: 'Ingestion Pipeline', date: '2026-04-25', status: 'upcoming' },
+      { id: 'ms5', name: 'Weekly Digest v1', date: '2026-05-16', status: 'upcoming' },
+    ],
+    tasks: [
+      { id: 't1', title: 'Create Xcode project with CoreData + CloudKit', status: 'thisweek', priority: 'high', due: '2026-03-21', milestone: 'ms1', weekly: true },
+      { id: 't2', title: 'Add iCloud + Background Modes capabilities', status: 'thisweek', priority: 'high', due: '2026-03-21', milestone: 'ms1', weekly: true },
+      { id: 't3', title: 'Implement 6-entity CoreData schema', status: 'backlog', priority: 'high', due: '2026-03-28', milestone: 'ms2', weekly: false },
+      { id: 't4', title: 'Keychain helper for API key storage', status: 'backlog', priority: 'mid', due: '2026-03-28', milestone: 'ms2', weekly: false },
+      { id: 't5', title: 'Test Claude API call from Swift (URLSession)', status: 'backlog', priority: 'high', due: '2026-04-04', milestone: 'ms3', weekly: false },
+      { id: 't6', title: 'JSON response parser → CoreData entities', status: 'backlog', priority: 'high', due: '2026-04-11', milestone: 'ms3', weekly: false },
+    ]
+  },
+  'hoami': {
+    milestones: [
+      { id: 'ms1', name: 'Asset Registry MVP', date: '2026-04-04', status: 'active' },
+      { id: 'ms2', name: 'Maintenance Scheduler', date: '2026-05-02', status: 'upcoming' },
+      { id: 'ms3', name: 'Demand Pooling Prototype', date: '2026-06-13', status: 'upcoming' },
+    ],
+    tasks: [
+      { id: 't1', title: 'Define asset data model (appliance, warranty, history)', status: 'thisweek', priority: 'high', due: '2026-03-21', milestone: 'ms1', weekly: true },
+      { id: 't2', title: 'Decide wedge product: registry vs scheduler vs pooling', status: 'inprogress', priority: 'high', due: '2026-03-18', milestone: 'ms1', weekly: true },
+      { id: 't3', title: 'Build manual asset entry UI', status: 'backlog', priority: 'mid', due: '2026-03-28', milestone: 'ms1', weekly: false },
+      { id: 't4', title: 'Maintenance rules engine design doc', status: 'backlog', priority: 'mid', due: '2026-04-18', milestone: 'ms2', weekly: false },
+    ]
+  },
+  'nutripuzzle': {
+    milestones: [
+      { id: 'ms1', name: 'USDA Data Integration', date: '2026-04-04', status: 'active' },
+      { id: 'ms2', name: 'Tracking MVP', date: '2026-05-02', status: 'upcoming' },
+      { id: 'ms3', name: 'Puzzle Mechanic', date: '2026-05-23', status: 'upcoming' },
+      { id: 'ms4', name: 'Request Queue System', date: '2026-06-20', status: 'upcoming' },
+    ],
+    tasks: [
+      { id: 't1', title: 'Explore USDA FoodData Central API', status: 'thisweek', priority: 'high', due: '2026-03-20', milestone: 'ms1', weekly: true },
+      { id: 't2', title: 'Define micronutrient gap analysis algorithm', status: 'backlog', priority: 'high', due: '2026-03-28', milestone: 'ms1', weekly: false },
+      { id: 't3', title: 'Design queue ranking formula', status: 'backlog', priority: 'mid', due: '2026-05-09', milestone: 'ms4', weekly: false },
+      { id: 't4', title: 'Sketch puzzle gamification mechanic', status: 'backlog', priority: 'mid', due: '2026-04-18', milestone: 'ms3', weekly: false },
+    ]
+  },
+  'tend': {
+    milestones: [
+      { id: 'ms1', name: 'Competitive Analysis', date: '2026-03-28', status: 'active' },
+      { id: 'ms2', name: 'Data Model', date: '2026-04-11', status: 'upcoming' },
+      { id: 'ms3', name: 'MVP: Contact Log', date: '2026-05-16', status: 'upcoming' },
+    ],
+    tasks: [
+      { id: 't1', title: 'Research Clay, Dex, Monica, Notion CRM', status: 'thisweek', priority: 'high', due: '2026-03-21', milestone: 'ms1', weekly: true },
+      { id: 't2', title: 'Define personal/professional crossover UX', status: 'backlog', priority: 'high', due: '2026-04-04', milestone: 'ms1', weekly: false },
+      { id: 't3', title: 'CoreData schema: Contact, Interaction, Reminder', status: 'backlog', priority: 'high', due: '2026-04-11', milestone: 'ms2', weekly: false },
+    ]
+  },
+  'knowledge-graph': {
+    milestones: [
+      { id: 'ms1', name: 'Architecture Decision', date: '2026-03-28', status: 'active' },
+      { id: 'ms2', name: 'Schema Definition', date: '2026-04-18', status: 'upcoming' },
+      { id: 'ms3', name: 'Local Instance Running', date: '2026-05-09', status: 'upcoming' },
+    ],
+    tasks: [
+      { id: 't1', title: 'Decide: PKS module vs standalone Neo4j', status: 'thisweek', priority: 'high', due: '2026-03-21', milestone: 'ms1', weekly: true },
+      { id: 't2', title: 'Define node types: Person, Org, Idea, Event, Project', status: 'backlog', priority: 'high', due: '2026-04-11', milestone: 'ms2', weekly: false },
+      { id: 't3', title: 'Define edge types: met_at, works_at, shared_idea', status: 'backlog', priority: 'mid', due: '2026-04-18', milestone: 'ms2', weekly: false },
+    ]
+  },
+  'flaneur': {
+    milestones: [
+      { id: 'ms1', name: 'Format Defined', date: '2026-03-28', status: 'active' },
+      { id: 'ms2', name: 'Episode 1 Filmed', date: '2026-04-25', status: 'upcoming' },
+      { id: 'ms3', name: 'Episode 1 Published', date: '2026-05-16', status: 'upcoming' },
+      { id: 'ms4', name: 'Ep 2 + 3 in Pipeline', date: '2026-06-13', status: 'upcoming' },
+    ],
+    tasks: [
+      { id: 't1', title: 'Define episode format and target runtime', status: 'thisweek', priority: 'high', due: '2026-03-21', milestone: 'ms1', weekly: true },
+      { id: 't2', title: 'Set up production folder structure', status: 'thisweek', priority: 'mid', due: '2026-03-21', milestone: 'ms1', weekly: true },
+      { id: 't3', title: 'Build guest + location pipeline doc', status: 'backlog', priority: 'mid', due: '2026-04-04', milestone: 'ms2', weekly: false },
+      { id: 't4', title: 'Scout first filming location', status: 'backlog', priority: 'mid', due: '2026-04-11', milestone: 'ms2', weekly: false },
+      { id: 't5', title: 'Draft publishing platform strategy', status: 'backlog', priority: 'low', due: '', milestone: 'ms3', weekly: false },
+    ]
+  },
+};
+
+// ── STATE ──
+let activeProj = 'networking-ea';
+let weekOffset = 0;
+let editingTaskId = null;
+let editingMsId = null;
+
+function getStore() {
+  const raw = localStorage.getItem('pm_data');
+  if (raw) return JSON.parse(raw);
+  // seed
+  const d = {};
+  Object.keys(SEED).forEach(pid => { d[pid] = JSON.parse(JSON.stringify(SEED[pid])); });
+  localStorage.setItem('pm_data', JSON.stringify(d));
+  return d;
+}
+function saveStore(d) { localStorage.setItem('pm_data', JSON.stringify(d)); }
+function getProjData(pid) {
+  const d = getStore();
+  if (!d[pid]) d[pid] = { milestones: [], tasks: [] };
+  return d[pid];
+}
+function saveProjData(pid, pdata) {
+  const d = getStore();
+  d[pid] = pdata;
+  saveStore(d);
+}
+
+// ── WEEK UTILS ──
+function getWeekBounds(offset) {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + offset * 7);
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { monday, sunday };
+}
+function formatDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function isoDate(d) { return d.toISOString().split('T')[0]; }
+function dueSoon(dateStr) {
+  if (!dateStr) return false;
+  const due = new Date(dateStr);
+  const now = new Date();
+  const diff = (due - now) / (1000*60*60*24);
+  return diff >= 0 && diff <= 3;
+}
+function isOverdue(dateStr) {
+  if (!dateStr) return false;
+  return new Date(dateStr) < new Date() && dateStr;
+}
+function shiftWeek(n) { weekOffset += n; renderAll(); }
+function goToToday() { weekOffset = 0; renderAll(); }
+
+function updateWeekLabel() {
+  const { monday, sunday } = getWeekBounds(weekOffset);
+  const label = weekOffset === 0 ? 'This Week' : weekOffset === 1 ? 'Next Week' : weekOffset === -1 ? 'Last Week' : `Week of ${formatDate(monday)}`;
+  document.getElementById('week-label').textContent = `${label}  ·  ${formatDate(monday)} – ${formatDate(sunday)}`;
+}
+
+// ── RENDER ──
+function renderAll() {
+  updateWeekLabel();
+  renderSidebar();
+  renderProject();
+}
+
+function renderSidebar() {
+  const d = getStore();
+  const tabs = PROJECTS.map(p => {
+    const pd = d[p.id] || { tasks: [] };
+    const done = pd.tasks.filter(t => t.status === 'done').length;
+    const total = pd.tasks.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    return `<div class="proj-tab ${p.id === activeProj ? 'active' : ''}" 
+      style="--proj-color:${p.color}" onclick="switchProj('${p.id}')">
+      <div class="proj-dot" style="background:${p.color}"></div>
+      <div class="proj-name">${p.name}</div>
+      <div class="proj-progress-mini">${pct}%</div>
+    </div>`;
+  }).join('');
+  document.getElementById('proj-tabs').innerHTML = tabs;
+
+  // sidebar stats
+  const allTasks = Object.values(d).flatMap(pd => pd.tasks || []);
+  const weekTasks = allTasks.filter(t => t.weekly && t.status !== 'done');
+  const doneTasks = allTasks.filter(t => t.status === 'done');
+  const inprog = allTasks.filter(t => t.status === 'inprogress');
+  document.getElementById('sidebar-stats').innerHTML = `
+    <div class="mini-stat"><span>Weekly focus</span><span>${weekTasks.length} open</span></div>
+    <div class="mini-stat"><span>In progress</span><span>${inprog.length}</span></div>
+    <div class="mini-stat"><span>Total done</span><span>${doneTasks.length}</span></div>
+  `;
+}
+
+function renderProject() {
+  const p = PROJECTS.find(x => x.id === activeProj);
+  const pd = getProjData(activeProj);
+
+  // header
+  document.getElementById('proj-header').innerHTML = `
+    <div class="proj-header" style="--proj-color:${p.color}">
+      <div class="proj-header-left">
+        <div class="proj-header-title">
+          <div class="dot" style="background:${p.color}"></div>
+          ${p.name}
+        </div>
+        <div class="proj-header-meta">${p.type} · ${pd.tasks.length} tasks · ${pd.milestones.length} milestones</div>
+      </div>
+      <div class="proj-header-right">
+        <button class="add-btn add-btn-ghost" style="--proj-color:${p.color}" onclick="openMilestoneModal()">+ Milestone</button>
+        <button class="add-btn" style="background:${p.color}" onclick="openTaskModal()">+ Task</button>
+      </div>
+    </div>`;
+
+  // progress
+  const done = pd.tasks.filter(t => t.status === 'done').length;
+  const pct = pd.tasks.length ? Math.round(done/pd.tasks.length*100) : 0;
+  document.getElementById('overall-progress').innerHTML = `
+    <div class="overall-progress" style="--proj-color:${p.color}">
+      <div class="progress-label-sm">Task progress</div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${pct}%;background:${p.color}"></div>
+      </div>
+      <div class="progress-pct">${pct}%</div>
+    </div>`;
+
+  // content
+  let html = '';
+
+  // milestones
+  html += `<div>
+    <div class="section-header">
+      <div class="section-title">Milestones</div>
+      <button class="section-add" onclick="openMilestoneModal()">+ Add</button>
+    </div>
+    <div class="milestones">`;
+
+  if (pd.milestones.length === 0) {
+    html += `<div style="color:var(--text3);font-size:11px;font-style:italic;padding:8px 0">No milestones yet — add one above.</div>`;
+  } else {
+    pd.milestones.forEach((ms, i) => {
+      const cls = ms.status === 'done' ? 'done' : ms.status === 'active' ? 'active' : '';
+      const icon = ms.status === 'done' ? '✓' : i + 1;
+      html += `<div class="milestone ${cls}" onclick="openMilestoneModal('${ms.id}')">
+        <div class="milestone-node">${icon}</div>
+        <div class="milestone-label">${ms.name}</div>
+        <div class="milestone-date">${ms.date || '—'}</div>
+      </div>`;
+    });
+  }
+  html += `</div></div>`;
+
+  // this week
+  const { monday, sunday } = getWeekBounds(weekOffset);
+  const weeklyTasks = pd.tasks.filter(t => t.weekly);
+  html += `<div>
+    <div class="section-header">
+      <div class="section-title">Weekly Focus</div>
+      <span style="font-size:10px;color:var(--text3)">${formatDate(monday)} – ${formatDate(sunday)}</span>
+    </div>
+    <div class="weekly-section" style="--proj-color:${p.color}">
+      <div class="weekly-header">
+        <div class="weekly-title">${weeklyTasks.length} focus task${weeklyTasks.length !== 1 ? 's' : ''} this week</div>
+        <div class="weekly-range" style="color:${p.color}">${weeklyTasks.filter(t=>t.status==='done').length} / ${weeklyTasks.length} done</div>
+      </div>
+      <div class="weekly-tasks">`;
+
+  if (weeklyTasks.length === 0) {
+    html += `<div style="color:var(--text3);font-size:11px;font-style:italic;padding:4px 0">No weekly focus tasks — mark tasks as weekly when adding.</div>`;
+  } else {
+    weeklyTasks.forEach(t => {
+      const isDone = t.status === 'done';
+      html += `<div class="weekly-task ${isDone ? 'done' : ''}" onclick="toggleWeeklyDone('${t.id}')">
+        <div class="wtask-check">${isDone ? '✓' : ''}</div>
+        <div class="wtask-text">${t.title}</div>
+        <div class="wtask-proj" style="background:${p.color}22;color:${p.color}">${t.priority}</div>
+      </div>`;
+    });
+  }
+  html += `</div></div></div>`;
+
+  // kanban board
+  const cols = [
+    { id: 'backlog',    label: 'Backlog',     color: 'var(--text3)' },
+    { id: 'thisweek',   label: 'This Week',   color: p.color },
+    { id: 'inprogress', label: 'In Progress', color: 'var(--orange)' },
+    { id: 'done',       label: 'Done',        color: 'var(--green)' },
+  ];
+
+  html += `<div>
+    <div class="section-header">
+      <div class="section-title">All Tasks</div>
+      <button class="section-add" onclick="openTaskModal()">+ Add</button>
+    </div>
+    <div class="task-board">`;
+
+  cols.forEach(col => {
+    const tasks = pd.tasks.filter(t => t.status === col.id);
+    html += `<div class="task-col">
+      <div class="task-col-header">
+        <div class="task-col-title" style="--col-color:${col.color}">${col.label}</div>
+        <div class="task-count">${tasks.length}</div>
+      </div>
+      <div class="task-list">`;
+
+    if (tasks.length === 0) {
+      html += `<div class="empty-col">—</div>`;
+    } else {
+      tasks.forEach(t => {
+        const ms = pd.milestones.find(m => m.id === t.milestone);
+        const overdue = isOverdue(t.due);
+        const soon = dueSoon(t.due);
+        const priorityColor = t.priority === 'high' ? p.color : t.priority === 'mid' ? 'var(--orange)' : 'var(--text3)';
+        html += `<div class="task-card" style="--task-color:${priorityColor}" onclick="openTaskModal('${t.id}')">
+          <div class="task-title">${t.title}</div>
+          <div class="task-meta">
+            ${ms ? `<div class="task-tag">${ms.name}</div>` : ''}
+            ${t.weekly ? `<div class="task-tag" style="color:${p.color};border:1px solid ${p.color}22">weekly</div>` : ''}
+            ${t.due ? `<div class="task-due ${overdue ? 'overdue' : soon ? 'soon' : ''}">${t.due}</div>` : ''}
+          </div>
+        </div>`;
+      });
+    }
+    html += `</div></div>`;
+  });
+
+  html += `</div></div>`;
+
+  document.getElementById('content').innerHTML = html;
+}
+
+// ── INTERACTIONS ──
+function switchProj(id) {
+  activeProj = id;
+  renderAll();
+}
+
+function toggleWeeklyDone(tid) {
+  const pd = getProjData(activeProj);
+  const t = pd.tasks.find(x => x.id === tid);
+  if (!t) return;
+  t.status = t.status === 'done' ? 'thisweek' : 'done';
+  saveProjData(activeProj, pd);
+  renderAll();
+}
+
+// ── TASK MODAL ──
+function openTaskModal(tid) {
+  editingTaskId = tid || null;
+  const pd = getProjData(activeProj);
+  const t = tid ? pd.tasks.find(x => x.id === tid) : null;
+
+  document.getElementById('task-modal-title').textContent = t ? 'Edit Task' : 'Add Task';
+  document.getElementById('t-title').value = t ? t.title : '';
+  document.getElementById('t-desc').value = t ? (t.desc || '') : '';
+  document.getElementById('t-status').value = t ? t.status : 'backlog';
+  document.getElementById('t-priority').value = t ? t.priority : 'mid';
+  document.getElementById('t-due').value = t ? (t.due || '') : '';
+  document.getElementById('t-weekly').value = t ? (t.weekly ? 'yes' : 'no') : 'no';
+
+  // milestone options
+  const msSelect = document.getElementById('t-milestone');
+  msSelect.innerHTML = '<option value="">— none —</option>' +
+    pd.milestones.map(m => `<option value="${m.id}" ${t && t.milestone === m.id ? 'selected' : ''}>${m.name}</option>`).join('');
+
+  document.getElementById('t-delete-btn').style.display = t ? 'block' : 'none';
+  document.getElementById('task-overlay').classList.add('open');
+}
+
+function saveTask() {
+  const title = document.getElementById('t-title').value.trim();
+  if (!title) { showToast('Title required'); return; }
+
+  const pd = getProjData(activeProj);
+  const taskData = {
+    title,
+    desc: document.getElementById('t-desc').value.trim(),
+    status: document.getElementById('t-status').value,
+    priority: document.getElementById('t-priority').value,
+    due: document.getElementById('t-due').value,
+    milestone: document.getElementById('t-milestone').value,
+    weekly: document.getElementById('t-weekly').value === 'yes',
+  };
+
+  if (editingTaskId) {
+    const idx = pd.tasks.findIndex(x => x.id === editingTaskId);
+    if (idx > -1) pd.tasks[idx] = { ...pd.tasks[idx], ...taskData };
+  } else {
+    pd.tasks.push({ id: 't' + Date.now(), ...taskData });
+  }
+
+  saveProjData(activeProj, pd);
+  closeOverlayDirect('task-overlay');
+  renderAll();
+  showToast(editingTaskId ? 'Task updated' : 'Task added');
+}
+
+function deleteTask() {
+  if (!editingTaskId) return;
+  const pd = getProjData(activeProj);
+  pd.tasks = pd.tasks.filter(x => x.id !== editingTaskId);
+  saveProjData(activeProj, pd);
+  closeOverlayDirect('task-overlay');
+  renderAll();
+  showToast('Task deleted');
+}
+
+// ── MILESTONE MODAL ──
+function openMilestoneModal(msid) {
+  editingMsId = msid || null;
+  const pd = getProjData(activeProj);
+  const ms = msid ? pd.milestones.find(x => x.id === msid) : null;
+
+  document.getElementById('ms-modal-title').textContent = ms ? 'Edit Milestone' : 'Add Milestone';
+  document.getElementById('ms-name').value = ms ? ms.name : '';
+  document.getElementById('ms-date').value = ms ? (ms.date || '') : '';
+  document.getElementById('ms-status').value = ms ? ms.status : 'upcoming';
+  document.getElementById('ms-delete-btn').style.display = ms ? 'block' : 'none';
+  document.getElementById('ms-overlay').classList.add('open');
+}
+
+function saveMilestone() {
+  const name = document.getElementById('ms-name').value.trim();
+  if (!name) { showToast('Name required'); return; }
+
+  const pd = getProjData(activeProj);
+  const msData = {
+    name,
+    date: document.getElementById('ms-date').value,
+    status: document.getElementById('ms-status').value,
+  };
+
+  if (editingMsId) {
+    const idx = pd.milestones.findIndex(x => x.id === editingMsId);
+    if (idx > -1) pd.milestones[idx] = { ...pd.milestones[idx], ...msData };
+  } else {
+    pd.milestones.push({ id: 'ms' + Date.now(), ...msData });
+  }
+
+  saveProjData(activeProj, pd);
+  closeOverlayDirect('ms-overlay');
+  renderAll();
+  showToast(editingMsId ? 'Milestone updated' : 'Milestone added');
+}
+
+function deleteMilestone() {
+  if (!editingMsId) return;
+  const pd = getProjData(activeProj);
+  pd.milestones = pd.milestones.filter(x => x.id !== editingMsId);
+  pd.tasks.forEach(t => { if (t.milestone === editingMsId) t.milestone = ''; });
+  saveProjData(activeProj, pd);
+  closeOverlayDirect('ms-overlay');
+  renderAll();
+  showToast('Milestone deleted');
+}
+
+// ── MODAL UTILS ──
+function closeOverlay(id, e) {
+  if (e.target === document.getElementById(id)) closeOverlayDirect(id);
+}
+function closeOverlayDirect(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeOverlayDirect('task-overlay');
+    closeOverlayDirect('ms-overlay');
+  }
+});
+
+// ── INIT ──
+renderAll();
+</script>
+</body>
+</html>
