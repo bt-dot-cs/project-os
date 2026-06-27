@@ -224,6 +224,8 @@ async function archivePage(id) {
 
 function mapWeeklyPlan(page) {
   const p = page.properties;
+  let timeBudgets = {};
+  try { timeBudgets = JSON.parse(gt(p['Time Budgets']) || '{}'); } catch (_) {}
   return {
     notionId: page.id,
     name: gti(p.Name),
@@ -232,6 +234,7 @@ function mapWeeklyPlan(page) {
     keyOutcomes: gt(p['Key Outcomes']),
     focusTasks: grel(p['Focus Tasks']),
     activeProjects: grel(p['Active Projects']),
+    timeBudgets,
   };
 }
 
@@ -251,12 +254,13 @@ async function getOrCreateWeeklyPlan(weekStart) {
 }
 
 async function updateWeeklyPlan(id, body) {
-  const { status, keyOutcomes, focusTaskIds, activeProjectIds } = body;
+  const { status, keyOutcomes, focusTaskIds, activeProjectIds, timeBudgets } = body;
   const props = {};
   if (status) props.Status = bs(status);
   if (keyOutcomes !== undefined) props['Key Outcomes'] = brt(keyOutcomes);
   if (focusTaskIds) props['Focus Tasks'] = brel(focusTaskIds);
   if (activeProjectIds) props['Active Projects'] = brel(activeProjectIds);
+  if (timeBudgets !== undefined) props['Time Budgets'] = brt(JSON.stringify(timeBudgets));
   const page = await nfetch('PATCH', `/pages/${id}`, { properties: props });
   return mapWeeklyPlan(page);
 }

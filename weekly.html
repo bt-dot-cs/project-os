@@ -457,7 +457,10 @@ async function init() {
 
     weekPlanId = plan.notionId || null;
 
-    const saved = JSON.parse(localStorage.getItem(`wp-${ws}`) || '{}');
+    // Budgets: prefer Notion record, fallback to localStorage
+    const notionBudgets = (plan && plan.timeBudgets && Object.keys(plan.timeBudgets).length)
+      ? plan.timeBudgets
+      : JSON.parse(localStorage.getItem(`wp-${ws}`) || '{}');
     const active = allProjects.filter(p => ['active', 'building'].includes(p.status));
 
     const taskResults = await Promise.all(
@@ -476,7 +479,7 @@ async function init() {
         name: p.name,
         color: PALETTE[i % PALETTE.length],
         tasks,
-        budget: saved[p.name] || 0,
+        budget: notionBudgets[p.name] || 0,
       };
     });
 
@@ -616,17 +619,18 @@ async function savePlan() {
 
     await Promise.all(patches);
 
-    // Persist budgets locally
     const budgets = {};
     projectData.forEach(p => { budgets[p.name] = p.budget; });
+    // Keep localStorage as fallback for offline use
     localStorage.setItem(`wp-${ws}`, JSON.stringify(budgets));
 
-    // Update weekly plan record in Notion
+    // Update weekly plan record in Notion (budgets travel with it — readable by gcal-block CLI)
     if (weekPlanId) {
       await api('PATCH', `/api/notion?resource=weekly&id=${weekPlanId}`, {
         status: 'active',
         focusTaskIds: thisWeekIds,
         activeProjectIds,
+        timeBudgets: budgets,
       });
     }
 
