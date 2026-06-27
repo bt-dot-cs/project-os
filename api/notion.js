@@ -220,6 +220,47 @@ async function archivePage(id) {
   return { ok: true };
 }
 
+// ── Weekly Plans ──
+
+function mapWeeklyPlan(page) {
+  const p = page.properties;
+  return {
+    notionId: page.id,
+    name: gti(p.Name),
+    weekStart: gd(p['Week Start']),
+    status: gs(p.Status) || 'planning',
+    keyOutcomes: gt(p['Key Outcomes']),
+    focusTasks: grel(p['Focus Tasks']),
+    activeProjects: grel(p['Active Projects']),
+  };
+}
+
+async function getOrCreateWeeklyPlan(weekStart) {
+  const dbId = process.env.NOTION_WEEKLY_PLANS_DB_ID;
+  const pages = await queryDb(dbId, { property: 'Week Start', date: { equals: weekStart } });
+  if (pages.length > 0) return mapWeeklyPlan(pages[0]);
+  const page = await nfetch('POST', '/pages', {
+    parent: { database_id: dbId },
+    properties: {
+      Name: bt(`Week of ${weekStart}`),
+      'Week Start': bd(weekStart),
+      Status: bs('planning'),
+    },
+  });
+  return mapWeeklyPlan(page);
+}
+
+async function updateWeeklyPlan(id, body) {
+  const { status, keyOutcomes, focusTaskIds, activeProjectIds } = body;
+  const props = {};
+  if (status) props.Status = bs(status);
+  if (keyOutcomes !== undefined) props['Key Outcomes'] = brt(keyOutcomes);
+  if (focusTaskIds) props['Focus Tasks'] = brel(focusTaskIds);
+  if (activeProjectIds) props['Active Projects'] = brel(activeProjectIds);
+  const page = await nfetch('PATCH', `/pages/${id}`, { properties: props });
+  return mapWeeklyPlan(page);
+}
+
 // ── Main handler ──
 
 module.exports = async (req, res) => {
@@ -246,6 +287,9 @@ module.exports = async (req, res) => {
       if (method === 'POST') result = await createMilestone(req.body);
       else if (method === 'PATCH') result = await updateMilestone(id, req.body);
       else if (method === 'DELETE') result = await archivePage(id);
+    } else if (resource === 'weekly') {
+      if (method === 'GET') result = await getOrCreateWeeklyPlan(req.query.weekStart);
+      else if (method === 'PATCH') result = await updateWeeklyPlan(id, req.body);
     } else {
       res.status(400).json({ error: 'unknown resource' }); return;
     }

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0e0e0f;
+  --bg2:     #141416;
+  --bg3:     #1a1a1d;
+  --bg4:     #222226;
+  --border:  #262629;
+  --border2: #333338;
+  --text:    #e8e6e0;
+  --text2:   #9a9890;
+  --text3:   #55534f;
+  --gold:    #c8a84a;
+  --green:   #6a9e7a;
+  --blue:    #6a8aaf;
+  --red:     #b06a5a;
+  --purple:  #8a72a8;
+  --orange:  #b87a40;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 100;
+}
+
+.topbar-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 300;
+  white-space: nowrap;
+}
+.topbar-title span { color: var(--gold); font-style: italic; }
+
+.topbar-link {
+  font-size: 10px;
+  color: var(--text3);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.topbar-link:hover { color: var(--gold); border-color: rgba(200,168,74,0.4); }
+
+.week-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 28px; height: 28px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 2px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.nav-btn:hover { border-color: var(--border2); color: var(--text); }
+
+.week-label {
+  font-size: 11px;
+  color: var(--text2);
+  min-width: 180px;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.save-btn {
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  padding: 7px 18px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: opacity 0.15s;
+}
+.save-btn:hover { opacity: 0.85; }
+.save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── SUMMARY STRIP ── */
+.summary {
+  padding: 24px 40px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 56px;
+  align-items: flex-end;
+}
+
+.sum-block {}
+.sum-num {
+  font-family: 'Fraunces', serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1;
+}
+.sum-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+/* ── GRID ── */
+.plan-grid {
+  padding: 32px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+/* ── PROJECT PANEL ── */
+.project-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-accent {
+  height: 2px;
+  background: var(--proj-color, var(--gold));
+}
+
+.panel-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.panel-name {
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.panel-budget-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.budget-input {
+  width: 46px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 2px;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+.budget-input::-webkit-outer-spin-button,
+.budget-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.budget-input:focus { border-color: var(--proj-color, var(--gold)); }
+
+.budget-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── TASK LIST ── */
+.task-list {
+  padding: 4px 20px;
+  flex: 1;
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+.task-row:last-child { border-bottom: none; }
+
+.task-cb { display: none; }
+
+.task-check {
+  width: 13px; height: 13px;
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.task-row.is-week .task-check {
+  background: var(--proj-color, var(--gold));
+  border-color: var(--proj-color, var(--gold));
+}
+
+.task-row.is-week .task-check::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 1px;
+  width: 4px; height: 7px;
+  border: 1.5px solid var(--bg);
+  border-left: none;
+  border-top: none;
+  transform: rotate(45deg);
+}
+
+.task-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.4;
+  transition: color 0.15s;
+}
+.task-row.is-week .task-name { color: var(--text); }
+
+.task-pri {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.pri-high   { color: var(--red);    border-color: rgba(176,106,90,0.35); }
+.pri-mid    { color: var(--text3);  border-color: var(--border); }
+.pri-low    { color: var(--text3);  border-color: var(--border); opacity: 0.5; }
+
+.no-tasks {
+  padding: 20px 0;
+  color: var(--text3);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* ── PANEL FOOTER ── */
+.panel-footer {
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-count {
+  font-size: 10px;
+  color: var(--text3);
+  flex-shrink: 0;
+  min-width: 96px;
+}
+
+.mini-bar {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+}
+
+.mini-fill {
+  height: 100%;
+  background: var(--proj-color, var(--gold));
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+/* ── UTILS ── */
+.loading {
+  grid-column: 1 / -1;
+  padding: 80px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 80px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 16px;
+  font-size: 11px;
+  border-radius: 2px;
+  z-index: 300;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 640px) {
+  .topbar { padding: 0 20px; }
+  .week-label { min-width: 120px; font-size: 10px; }
+  .summary { padding: 20px; gap: 32px; }
+  .plan-grid { padding: 20px; grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">Week <span>Plan</span></div>
+  <a href="/projects.html" class="topbar-link">Projects</a>
+  <a href="/pm.html" class="topbar-link">PM</a>
+  <div class="week-nav">
+    <button class="nav-btn" onclick="changeWeek(-1)" title="Previous week">‹</button>
+    <span class="week-label" id="week-label">—</span>
+    <button class="nav-btn" onclick="changeWeek(1)" title="Next week">›</button>
+  </div>
+  <button class="save-btn" id="save-btn" onclick="savePlan()">Save Plan</button>
+</div>
+
+<div class="summary">
+  <div class="sum-block">
+    <div class="sum-num" id="sum-tasks">0</div>
+    <div class="sum-label">Tasks This Week</div>
+  </div>
+  <div class="sum-block">
+    <div class="sum-num" id="sum-hours">0</div>
+    <div class="sum-label">Hours Budgeted</div>
+  </div>
+  <div class="sum-block">
+    <div class="sum-num" id="sum-projects">0</div>
+    <div class="sum-label">Active Projects</div>
+  </div>
+</div>
+
+<div class="plan-grid" id="plan-grid">
+  <div class="loading">Loading week plan...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PALETTE = [
+  '#c8a84a', '#6a9e7a', '#6a8aaf', '#8a72a8',
+  '#b87a40', '#b06a5a', '#8fa89e', '#c8b97a',
+];
+
+let weekOffset = 0;
+let weekPlanId = null;
+let projectData = [];
+let saving = false;
+
+// ── Week helpers ──
+
+function getWeekStart(offset) {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // back to Monday
+  d.setDate(d.getDate() + diff + offset * 7);
+  return d.toISOString().slice(0, 10);
+}
+
+function getWeekLabel(ws) {
+  const d = new Date(ws + 'T12:00:00');
+  const e = new Date(d);
+  e.setDate(d.getDate() + 6);
+  const fmt = x => x.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return `${fmt(d)} – ${fmt(e)}, ${d.getFullYear()}`;
+}
+
+// ── API ──
+
+async function api(method, url, body) {
+  const res = await fetch(url, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : {},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(res.status);
+  return res.json();
+}
+
+// ── Status helpers ──
+
+function isThisWeek(status) {
+  return status === 'this-week' || status === 'thisweek' ||
+         status === 'in-progress' || status === 'inprogress';
+}
+
+function pct(a, b) { return b ? Math.round(a / b * 100) : 0; }
+
+// ── Init ──
+
+async function init() {
+  const ws = getWeekStart(weekOffset);
+  document.getElementById('week-label').textContent = getWeekLabel(ws);
+  document.getElementById('plan-grid').innerHTML = '<div class="loading">Loading week plan...</div>';
+
+  try {
+    const [allProjects, plan] = await Promise.all([
+      api('GET', '/api/notion?resource=projects'),
+      api('GET', `/api/notion?resource=weekly&weekStart=${ws}`).catch(() => ({ notionId: null })),
+    ]);
+
+    weekPlanId = plan.notionId || null;
+
+    const saved = JSON.parse(localStorage.getItem(`wp-${ws}`) || '{}');
+    const active = allProjects.filter(p => ['active', 'building'].includes(p.status));
+
+    const taskResults = await Promise.all(
+      active.map(p =>
+        api('GET', `/api/notion?resource=pm&project=${encodeURIComponent(p.name)}`)
+          .catch(() => ({ tasks: [] }))
+      )
+    );
+
+    projectData = active.map((p, i) => {
+      const tasks = (taskResults[i].tasks || [])
+        .filter(t => t.status !== 'done' && t.status !== 'snoozed')
+        .map(t => ({ ...t, cur: t.status, orig: t.status }));
+      return {
+        notionId: p.notionId,
+        name: p.name,
+        color: PALETTE[i % PALETTE.length],
+        tasks,
+        budget: saved[p.name] || 0,
+      };
+    });
+
+    render();
+  } catch (e) {
+    document.getElementById('plan-grid').innerHTML =
+      `<div class="empty">Load failed: ${e.message}<br>Check that Notion credentials are set in Vercel.</div>`;
+  }
+}
+
+// ── Render ──
+
+function render() {
+  const grid = document.getElementById('plan-grid');
+
+  if (!projectData.length) {
+    grid.innerHTML = '<div class="empty">No active projects found in Notion.<br>Open Projects and save some projects first.</div>';
+    updateSummary();
+    return;
+  }
+
+  grid.innerHTML = projectData.map((p, pi) => `
+    <div class="project-panel" style="--proj-color: ${p.color}">
+      <div class="panel-accent"></div>
+      <div class="panel-header">
+        <div class="panel-name">${p.name}</div>
+        <div class="panel-budget-wrap">
+          <input class="budget-input" type="number" min="0" max="40" value="${p.budget}"
+            title="Hours budgeted this week"
+            onchange="setBudget(${pi}, this.value)" />
+          <span class="budget-label">hrs</span>
+        </div>
+      </div>
+      <div class="task-list">
+        ${renderTasks(p, pi)}
+      </div>
+      <div class="panel-footer">
+        <span class="footer-count" id="footer-${pi}">
+          ${p.tasks.filter(t => isThisWeek(t.cur)).length} / ${p.tasks.length} scheduled
+        </span>
+        <div class="mini-bar">
+          <div class="mini-fill" id="fill-${pi}"
+            style="width: ${pct(p.tasks.filter(t => isThisWeek(t.cur)).length, p.tasks.length)}%">
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  updateSummary();
+}
+
+function renderTasks(p, pi) {
+  if (!p.tasks.length) {
+    return '<div class="no-tasks">No open tasks — add tasks in PM view</div>';
+  }
+  return p.tasks.map((t, ti) => `
+    <label class="task-row ${isThisWeek(t.cur) ? 'is-week' : ''}" id="row-${pi}-${ti}">
+      <input type="checkbox" class="task-cb"
+        ${isThisWeek(t.cur) ? 'checked' : ''}
+        onchange="toggleTask(${pi}, ${ti})">
+      <span class="task-check"></span>
+      <span class="task-name">${t.title || 'Untitled'}</span>
+      <span class="task-pri pri-${t.priority || 'mid'}">${t.priority || 'mid'}</span>
+    </label>
+  `).join('');
+}
+
+// ── Interactions ──
+
+function toggleTask(pi, ti) {
+  const task = projectData[pi].tasks[ti];
+  task.cur = isThisWeek(task.cur) ? 'backlog' : 'this-week';
+  const row = document.getElementById(`row-${pi}-${ti}`);
+  if (row) row.classList.toggle('is-week', isThisWeek(task.cur));
+  updateFooter(pi);
+  updateSummary();
+}
+
+function setBudget(pi, val) {
+  projectData[pi].budget = parseInt(val) || 0;
+  updateSummary();
+}
+
+function updateFooter(pi) {
+  const p = projectData[pi];
+  const count = p.tasks.filter(t => isThisWeek(t.cur)).length;
+  const footerEl = document.getElementById(`footer-${pi}`);
+  const fillEl = document.getElementById(`fill-${pi}`);
+  if (footerEl) footerEl.textContent = `${count} / ${p.tasks.length} scheduled`;
+  if (fillEl) fillEl.style.width = pct(count, p.tasks.length) + '%';
+}
+
+function updateSummary() {
+  let tasks = 0, hours = 0, projs = 0;
+  for (const p of projectData) {
+    const n = p.tasks.filter(t => isThisWeek(t.cur)).length;
+    if (n) projs++;
+    tasks += n;
+    hours += p.budget || 0;
+  }
+  document.getElementById('sum-tasks').textContent = tasks;
+  document.getElementById('sum-hours').textContent = hours;
+  document.getElementById('sum-projects').textContent = projs;
+}
+
+// ── Save ──
+
+async function savePlan() {
+  if (saving) return;
+  saving = true;
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const ws = getWeekStart(weekOffset);
+
+  try {
+    const patches = [];
+    const thisWeekIds = [];
+    const activeProjectIds = [];
+
+    for (const p of projectData) {
+      let hasWeek = false;
+      for (const t of p.tasks) {
+        const taskId = t.notionId || t.id;
+        if (t.cur !== t.orig) {
+          patches.push(
+            api('PATCH', `/api/notion?resource=tasks&id=${taskId}`, { status: t.cur })
+              .then(() => { t.orig = t.cur; })
+          );
+        }
+        if (isThisWeek(t.cur)) { thisWeekIds.push(taskId); hasWeek = true; }
+      }
+      if (hasWeek && p.notionId) activeProjectIds.push(p.notionId);
+    }
+
+    await Promise.all(patches);
+
+    // Persist budgets locally
+    const budgets = {};
+    projectData.forEach(p => { budgets[p.name] = p.budget; });
+    localStorage.setItem(`wp-${ws}`, JSON.stringify(budgets));
+
+    // Update weekly plan record in Notion
+    if (weekPlanId) {
+      await api('PATCH', `/api/notion?resource=weekly&id=${weekPlanId}`, {
+        status: 'active',
+        focusTaskIds: thisWeekIds,
+        activeProjectIds,
+      });
+    }
+
+    showToast(`Saved — ${thisWeekIds.length} task${thisWeekIds.length !== 1 ? 's' : ''} this week`);
+  } catch (e) {
+    showToast('Save failed');
+    console.error(e);
+  } finally {
+    saving = false;
+    btn.textContent = 'Save Plan';
+    btn.disabled = false;
+  }
+}
+
+// ── Week nav ──
+
+function changeWeek(dir) {
+  weekOffset += dir;
+  projectData = [];
+  init();
+}
+
+// ── Toast ──
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+init();
+</script>
+</body>
+</html>
