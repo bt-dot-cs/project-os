@@ -963,25 +963,57 @@ let weekOffset = 0;
 let editingTaskId = null;
 let editingMsId = null;
 
-function getStore() {
-  const raw = localStorage.getItem('pm_data');
-  if (raw) return JSON.parse(raw);
-  // seed
-  const d = {};
-  Object.keys(SEED).forEach(pid => { d[pid] = JSON.parse(JSON.stringify(SEED[pid])); });
-  localStorage.setItem('pm_data', JSON.stringify(d));
-  return d;
-}
-function saveStore(d) { localStorage.setItem('pm_data', JSON.stringify(d)); }
+// ── STORE (Notion-backed, in-memory cache) ──
+const pmCache = {}; // pid → { tasks, milestones, loaded }
+
 function getProjData(pid) {
-  const d = getStore();
-  if (!d[pid]) d[pid] = { milestones: [], tasks: [] };
-  return d[pid];
+  if (!pmCache[pid]) pmCache[pid] = { tasks: [], milestones: [], loaded: false };
+  return pmCache[pid];
 }
-function saveProjData(pid, pdata) {
-  const d = getStore();
-  d[pid] = pdata;
-  saveStore(d);
+
+async function loadProjData(pid) {
+  const pd = getProjData(pid);
+  if (pd.loaded) return pd;
+  const projName = PROJECTS.find(p => p.id === pid)?.name;
+  if (!projName) return pd;
+  try {
+    const res = await fetch(`/api/notion?resource=pm&project=${encodeURIComponent(projName)}`);
+    if (res.ok) {
+      const data = await res.json();
+      pd.tasks = data.tasks || [];
+      pd.milestones = data.milestones || [];
+      pd.loaded = true;
+    }
+  } catch (e) {
+    console.warn('Notion fetch failed for', pid, e);
+  }
+  return pd;
+}
+
+async function notionPost(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+
+async function notionPatch(url, body) {
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+
+async function notionDelete(url) {
+  const res = await fetch(url, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
 }
 
 // ── WEEK UTILS ──
@@ -1027,13 +1059,12 @@ function renderAll() {
 }
 
 function renderSidebar() {
-  const d = getStore();
   const tabs = PROJECTS.map(p => {
-    const pd = d[p.id] || { tasks: [] };
+    const pd = pmCache[p.id] || { tasks: [] };
     const done = pd.tasks.filter(t => t.status === 'done').length;
     const total = pd.tasks.length;
     const pct = total ? Math.round(done/total*100) : 0;
-    return `<div class="proj-tab ${p.id === activeProj ? 'active' : ''}" 
+    return `<div class="proj-tab ${p.id === activeProj ? 'active' : ''}"
       style="--proj-color:${p.color}" onclick="switchProj('${p.id}')">
       <div class="proj-dot" style="background:${p.color}"></div>
       <div class="proj-name">${p.name}</div>
@@ -1042,8 +1073,7 @@ function renderSidebar() {
   }).join('');
   document.getElementById('proj-tabs').innerHTML = tabs;
 
-  // sidebar stats
-  const allTasks = Object.values(d).flatMap(pd => pd.tasks || []);
+  const allTasks = Object.values(pmCache).flatMap(pd => pd.tasks || []);
   const weekTasks = allTasks.filter(t => t.weekly && t.status !== 'done');
   const doneTasks = allTasks.filter(t => t.status === 'done');
   const inprog = allTasks.filter(t => t.status === 'inprogress');
@@ -1056,7 +1086,7 @@ function renderSidebar() {
 
 function renderProject() {
   const p = PROJECTS.find(x => x.id === activeProj);
-  const pd = getProjData(activeProj);
+  const pd = pmCache[activeProj] || { tasks: [], milestones: [] };
 
   // header
   document.getElementById('proj-header').innerHTML = `
@@ -1192,24 +1222,33 @@ function renderProject() {
 }
 
 // ── INTERACTIONS ──
-function switchProj(id) {
+async function switchProj(id) {
   activeProj = id;
-  renderAll();
+  renderAll(); // show cached (possibly empty) state immediately
+  await loadProjData(id);
+  renderAll(); // re-render with Notion data
 }
 
-function toggleWeeklyDone(tid) {
+async function toggleWeeklyDone(tid) {
   const pd = getProjData(activeProj);
   const t = pd.tasks.find(x => x.id === tid);
   if (!t) return;
+  const prev = t.status;
   t.status = t.status === 'done' ? 'thisweek' : 'done';
-  saveProjData(activeProj, pd);
-  renderAll();
+  renderAll(); // optimistic
+  try {
+    await notionPatch(`/api/notion?resource=tasks&id=${t.notionId}`, { status: t.status });
+  } catch (e) {
+    t.status = prev;
+    renderAll();
+    showToast('Update failed');
+  }
 }
 
 // ── TASK MODAL ──
 function openTaskModal(tid) {
   editingTaskId = tid || null;
-  const pd = getProjData(activeProj);
+  const pd = pmCache[activeProj] || { tasks: [], milestones: [] };
   const t = tid ? pd.tasks.find(x => x.id === tid) : null;
 
   document.getElementById('task-modal-title').textContent = t ? 'Edit Task' : 'Add Task';
@@ -1220,57 +1259,67 @@ function openTaskModal(tid) {
   document.getElementById('t-due').value = t ? (t.due || '') : '';
   document.getElementById('t-weekly').value = t ? (t.weekly ? 'yes' : 'no') : 'no';
 
-  // milestone options
   const msSelect = document.getElementById('t-milestone');
   msSelect.innerHTML = '<option value="">— none —</option>' +
-    pd.milestones.map(m => `<option value="${m.id}" ${t && t.milestone === m.id ? 'selected' : ''}>${m.name}</option>`).join('');
+    pd.milestones.map(m => `<option value="${m.notionId}" ${t && t.milestoneNotionId === m.notionId ? 'selected' : ''}>${m.name}</option>`).join('');
 
   document.getElementById('t-delete-btn').style.display = t ? 'block' : 'none';
   document.getElementById('task-overlay').classList.add('open');
 }
 
-function saveTask() {
+async function saveTask() {
   const title = document.getElementById('t-title').value.trim();
   if (!title) { showToast('Title required'); return; }
 
   const pd = getProjData(activeProj);
+  const projName = PROJECTS.find(p => p.id === activeProj)?.name;
   const taskData = {
     title,
     desc: document.getElementById('t-desc').value.trim(),
     status: document.getElementById('t-status').value,
     priority: document.getElementById('t-priority').value,
     due: document.getElementById('t-due').value,
-    milestone: document.getElementById('t-milestone').value,
+    milestoneNotionId: document.getElementById('t-milestone').value,
     weekly: document.getElementById('t-weekly').value === 'yes',
   };
 
-  if (editingTaskId) {
-    const idx = pd.tasks.findIndex(x => x.id === editingTaskId);
-    if (idx > -1) pd.tasks[idx] = { ...pd.tasks[idx], ...taskData };
-  } else {
-    pd.tasks.push({ id: 't' + Date.now(), ...taskData });
+  showToast('Saving…');
+  try {
+    if (editingTaskId) {
+      const updated = await notionPatch(`/api/notion?resource=tasks&id=${editingTaskId}`, taskData);
+      const idx = pd.tasks.findIndex(x => x.notionId === editingTaskId);
+      if (idx > -1) pd.tasks[idx] = updated;
+    } else {
+      const created = await notionPost('/api/notion?resource=tasks', { projectName: projName, ...taskData });
+      pd.tasks.push(created);
+    }
+    closeOverlayDirect('task-overlay');
+    renderAll();
+    showToast(editingTaskId ? 'Task updated' : 'Task added');
+  } catch (e) {
+    showToast('Save failed');
   }
-
-  saveProjData(activeProj, pd);
-  closeOverlayDirect('task-overlay');
-  renderAll();
-  showToast(editingTaskId ? 'Task updated' : 'Task added');
 }
 
-function deleteTask() {
+async function deleteTask() {
   if (!editingTaskId) return;
-  const pd = getProjData(activeProj);
-  pd.tasks = pd.tasks.filter(x => x.id !== editingTaskId);
-  saveProjData(activeProj, pd);
-  closeOverlayDirect('task-overlay');
-  renderAll();
-  showToast('Task deleted');
+  showToast('Deleting…');
+  try {
+    await notionDelete(`/api/notion?resource=tasks&id=${editingTaskId}`);
+    const pd = getProjData(activeProj);
+    pd.tasks = pd.tasks.filter(x => x.notionId !== editingTaskId);
+    closeOverlayDirect('task-overlay');
+    renderAll();
+    showToast('Task deleted');
+  } catch (e) {
+    showToast('Delete failed');
+  }
 }
 
 // ── MILESTONE MODAL ──
 function openMilestoneModal(msid) {
   editingMsId = msid || null;
-  const pd = getProjData(activeProj);
+  const pd = pmCache[activeProj] || { tasks: [], milestones: [] };
   const ms = msid ? pd.milestones.find(x => x.id === msid) : null;
 
   document.getElementById('ms-modal-title').textContent = ms ? 'Edit Milestone' : 'Add Milestone';
@@ -1281,39 +1330,50 @@ function openMilestoneModal(msid) {
   document.getElementById('ms-overlay').classList.add('open');
 }
 
-function saveMilestone() {
+async function saveMilestone() {
   const name = document.getElementById('ms-name').value.trim();
   if (!name) { showToast('Name required'); return; }
 
   const pd = getProjData(activeProj);
+  const projName = PROJECTS.find(p => p.id === activeProj)?.name;
   const msData = {
     name,
     date: document.getElementById('ms-date').value,
     status: document.getElementById('ms-status').value,
   };
 
-  if (editingMsId) {
-    const idx = pd.milestones.findIndex(x => x.id === editingMsId);
-    if (idx > -1) pd.milestones[idx] = { ...pd.milestones[idx], ...msData };
-  } else {
-    pd.milestones.push({ id: 'ms' + Date.now(), ...msData });
+  showToast('Saving…');
+  try {
+    if (editingMsId) {
+      const updated = await notionPatch(`/api/notion?resource=milestones&id=${editingMsId}`, msData);
+      const idx = pd.milestones.findIndex(x => x.notionId === editingMsId);
+      if (idx > -1) pd.milestones[idx] = updated;
+    } else {
+      const created = await notionPost('/api/notion?resource=milestones', { projectName: projName, ...msData });
+      pd.milestones.push(created);
+    }
+    closeOverlayDirect('ms-overlay');
+    renderAll();
+    showToast(editingMsId ? 'Milestone updated' : 'Milestone added');
+  } catch (e) {
+    showToast('Save failed');
   }
-
-  saveProjData(activeProj, pd);
-  closeOverlayDirect('ms-overlay');
-  renderAll();
-  showToast(editingMsId ? 'Milestone updated' : 'Milestone added');
 }
 
-function deleteMilestone() {
+async function deleteMilestone() {
   if (!editingMsId) return;
-  const pd = getProjData(activeProj);
-  pd.milestones = pd.milestones.filter(x => x.id !== editingMsId);
-  pd.tasks.forEach(t => { if (t.milestone === editingMsId) t.milestone = ''; });
-  saveProjData(activeProj, pd);
-  closeOverlayDirect('ms-overlay');
-  renderAll();
-  showToast('Milestone deleted');
+  showToast('Deleting…');
+  try {
+    await notionDelete(`/api/notion?resource=milestones&id=${editingMsId}`);
+    const pd = getProjData(activeProj);
+    pd.milestones = pd.milestones.filter(x => x.notionId !== editingMsId);
+    pd.tasks.forEach(t => { if (t.milestoneNotionId === editingMsId) t.milestoneNotionId = ''; });
+    closeOverlayDirect('ms-overlay');
+    renderAll();
+    showToast('Milestone deleted');
+  } catch (e) {
+    showToast('Delete failed');
+  }
 }
 
 // ── MODAL UTILS ──
@@ -1341,7 +1401,12 @@ document.addEventListener('keydown', e => {
 });
 
 // ── INIT ──
-renderAll();
+async function init() {
+  updateWeekLabel();
+  renderSidebar();
+  await switchProj(activeProj);
+}
+init();
 </script>
 </body>
 </html>

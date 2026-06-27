@@ -1037,7 +1037,18 @@ const PROJECTS = [
 let activeFilter = 'all';
 let activeStatusFilter = null;
 let searchQuery = '';
-let projects = JSON.parse(localStorage.getItem('projects') || 'null') || PROJECTS;
+let projects = PROJECTS.map(p => ({ ...p })); // mutable seed copy; Notion overwrites mutable fields
+
+// ── API ──
+async function api(method, url, body) {
+  const res = await fetch(url, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : {},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
 
 // ── RENDER ──
 function getStatusClass(s) {
@@ -1220,15 +1231,24 @@ function setCardStatus(id, status, btn) {
   btn.style.color = p.accentColor;
 }
 
-function saveCard(id) {
+async function saveCard(id) {
   const p = projects.find(x => x.id === id);
   if (!p) return;
   p.nextStep = document.getElementById('edit-next').value;
   p.dir = document.getElementById('edit-dir').value;
   p.progress = parseInt(document.getElementById('edit-progress').value);
-  localStorage.setItem('projects', JSON.stringify(projects));
   renderGrid();
-  showToast('Saved ✓');
+  showToast('Saving…');
+  try {
+    const data = await api('POST', '/api/notion?resource=projects', {
+      name: p.name, status: p.status, progress: p.progress,
+      nextStep: p.nextStep, dir: p.dir,
+    });
+    p.notionId = data.notionId;
+    showToast('Saved ✓');
+  } catch (e) {
+    showToast('Save failed');
+  }
 }
 
 function closeModal(e) {
@@ -1258,7 +1278,25 @@ document.addEventListener('keydown', e => {
 });
 
 // ── INIT ──
-renderGrid();
+async function initDashboard() {
+  renderGrid(); // show seed data immediately
+  try {
+    const notionProjects = await api('GET', '/api/notion?resource=projects');
+    notionProjects.forEach(np => {
+      const p = projects.find(x => x.name === np.name);
+      if (!p) return;
+      p.notionId = np.notionId;
+      if (np.status) p.status = np.status;
+      if (np.progress != null) p.progress = np.progress;
+      if (np.nextStep) p.nextStep = np.nextStep;
+      if (np.dir) p.dir = np.dir;
+    });
+    renderGrid();
+  } catch (e) {
+    console.warn('Notion unavailable, using seed data', e);
+  }
+}
+initDashboard();
 </script>
 </body>
 </html>
