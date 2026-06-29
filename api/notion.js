@@ -232,6 +232,8 @@ function mapWeeklyPlan(page) {
     weekStart: gd(p['Week Start']),
     status: gs(p.Status) || 'planning',
     keyOutcomes: gt(p['Key Outcomes']),
+    reflection: gt(p['Reflection']),
+    energyLevel: gs(p['Energy Level']),
     focusTasks: grel(p['Focus Tasks']),
     activeProjects: grel(p['Active Projects']),
     timeBudgets,
@@ -254,15 +256,36 @@ async function getOrCreateWeeklyPlan(weekStart) {
 }
 
 async function updateWeeklyPlan(id, body) {
-  const { status, keyOutcomes, focusTaskIds, activeProjectIds, timeBudgets } = body;
+  const { status, keyOutcomes, reflection, energyLevel, focusTaskIds, activeProjectIds, timeBudgets } = body;
   const props = {};
-  if (status) props.Status = bs(status);
+  if (status !== undefined) props.Status = bs(status);
   if (keyOutcomes !== undefined) props['Key Outcomes'] = brt(keyOutcomes);
+  if (reflection !== undefined) props['Reflection'] = brt(reflection);
+  if (energyLevel !== undefined) props['Energy Level'] = bs(energyLevel || null);
   if (focusTaskIds) props['Focus Tasks'] = brel(focusTaskIds);
   if (activeProjectIds) props['Active Projects'] = brel(activeProjectIds);
   if (timeBudgets !== undefined) props['Time Budgets'] = brt(JSON.stringify(timeBudgets));
   const page = await nfetch('PATCH', `/pages/${id}`, { properties: props });
   return mapWeeklyPlan(page);
+}
+
+async function getFocusTasks(planId) {
+  const page = await nfetch('GET', `/pages/${planId}`);
+  const focusIds = grel(page.properties['Focus Tasks']);
+  if (!focusIds.length) return { tasks: [], doneCount: 0, totalCount: 0 };
+  const tasks = await Promise.all(
+    focusIds.map(async id => {
+      try {
+        const tp = await nfetch('GET', `/pages/${id}`);
+        const props = tp.properties;
+        const status = gs(props.Status);
+        return { id, name: gti(props.Name), status, done: status === 'done' };
+      } catch (_) {
+        return { id, name: '(unknown)', status: '', done: false };
+      }
+    })
+  );
+  return { tasks, doneCount: tasks.filter(t => t.done).length, totalCount: tasks.length };
 }
 
 // ── Main handler ──
@@ -294,6 +317,8 @@ module.exports = async (req, res) => {
     } else if (resource === 'weekly') {
       if (method === 'GET') result = await getOrCreateWeeklyPlan(req.query.weekStart);
       else if (method === 'PATCH') result = await updateWeeklyPlan(id, req.body);
+    } else if (resource === 'focus-tasks') {
+      if (method === 'GET') result = await getFocusTasks(id);
     } else {
       res.status(400).json({ error: 'unknown resource' }); return;
     }

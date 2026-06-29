@@ -314,6 +314,206 @@ body {
   transition: width 0.3s ease;
 }
 
+/* ── REVIEW PANEL ── */
+.review-panel {
+  margin: 0 40px 48px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.review-header {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+}
+
+.review-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+}
+
+.review-status-badge {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.badge-planning { color: var(--text3); border-color: var(--border2); }
+.badge-active   { color: var(--green); border-color: rgba(106,158,122,0.4); }
+.badge-complete { color: var(--gold);  border-color: rgba(200,168,74,0.4); }
+
+.review-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--bg);
+}
+
+.hit-strip {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.hit-num {
+  font-family: 'Fraunces', serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.hit-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-top: 3px;
+}
+
+.hit-bar-wrap {
+  flex: 1;
+}
+
+.hit-bar {
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+}
+
+.hit-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.hit-pct {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 6px;
+}
+
+.review-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+}
+
+.field-textarea {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 10px 14px;
+  resize: vertical;
+  min-height: 60px;
+  outline: none;
+  transition: border-color 0.15s;
+  line-height: 1.6;
+}
+.field-textarea:focus { border-color: var(--border2); }
+.field-textarea[readonly] {
+  color: var(--text2);
+  cursor: default;
+}
+.field-textarea::placeholder { color: var(--text3); }
+
+.energy-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.energy-btn {
+  flex: 1;
+  padding: 7px 0;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.energy-btn:hover:not(:disabled) { border-color: var(--border2); color: var(--text2); }
+.energy-btn.active-low    { background: rgba(176,106,90,0.15); border-color: rgba(176,106,90,0.5); color: var(--red); }
+.energy-btn.active-medium { background: rgba(184,122,64,0.15); border-color: rgba(184,122,64,0.5); color: var(--orange); }
+.energy-btn.active-high   { background: rgba(106,158,122,0.15); border-color: rgba(106,158,122,0.5); color: var(--green); }
+.energy-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.review-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.agent-row {
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.close-week-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 7px 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.close-week-btn:hover { border-color: var(--red); color: var(--red); }
+.close-week-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── READ-ONLY MODE ── */
+body.week-closed .task-row { cursor: default; pointer-events: none; }
+body.week-closed .budget-input { pointer-events: none; opacity: 0.5; }
+body.week-closed .save-btn { display: none; }
+body.week-closed .week-closed-tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  border: 1px solid rgba(200,168,74,0.4);
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
 /* ── UTILS ── */
 .loading {
   grid-column: 1 / -1;
@@ -368,6 +568,7 @@ body {
     <span class="week-label" id="week-label">—</span>
     <button class="nav-btn" onclick="changeWeek(1)" title="Next week">›</button>
   </div>
+  <span class="week-closed-tag" id="closed-tag" style="display:none">Week Closed</span>
   <button class="save-btn" id="save-btn" onclick="savePlan()">Save Plan</button>
 </div>
 
@@ -390,6 +591,8 @@ body {
   <div class="loading">Loading week plan...</div>
 </div>
 
+<div class="review-panel" id="review-panel" style="display:none"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -400,7 +603,9 @@ const PALETTE = [
 
 let weekOffset = 0;
 let weekPlanId = null;
+let weekPlan = null;
 let projectData = [];
+let focusTaskData = null;
 let saving = false;
 
 // ── Week helpers ──
@@ -448,6 +653,8 @@ async function init() {
   const ws = getWeekStart(weekOffset);
   document.getElementById('week-label').textContent = getWeekLabel(ws);
   document.getElementById('plan-grid').innerHTML = '<div class="loading">Loading week plan...</div>';
+  document.getElementById('review-panel').style.display = 'none';
+  focusTaskData = null;
 
   try {
     const [allProjects, plan] = await Promise.all([
@@ -455,6 +662,7 @@ async function init() {
       api('GET', `/api/notion?resource=weekly&weekStart=${ws}`).catch(() => ({ notionId: null })),
     ]);
 
+    weekPlan = plan;
     weekPlanId = plan.notionId || null;
 
     // Budgets: prefer Notion record, fallback to localStorage
@@ -484,6 +692,12 @@ async function init() {
     });
 
     render();
+    renderReviewPanel();
+
+    // For closed weeks, fetch focus task results
+    if (weekPlanId && plan.status === 'complete' && (plan.focusTasks || []).length) {
+      loadFocusTasks();
+    }
   } catch (e) {
     document.getElementById('plan-grid').innerHTML =
       `<div class="empty">Load failed: ${e.message}<br>Check that Notion credentials are set in Vercel.</div>`;
@@ -494,6 +708,12 @@ async function init() {
 
 function render() {
   const grid = document.getElementById('plan-grid');
+  const closed = weekPlan && weekPlan.status === 'complete';
+
+  // Apply / remove read-only body class
+  document.body.classList.toggle('week-closed', !!closed);
+  const closedTag = document.getElementById('closed-tag');
+  if (closedTag) closedTag.style.display = closed ? '' : 'none';
 
   if (!projectData.length) {
     grid.innerHTML = '<div class="empty">No active projects found in Notion.<br>Open Projects and save some projects first.</div>';
@@ -645,11 +865,172 @@ async function savePlan() {
   }
 }
 
+// ── Review panel ──
+
+function renderReviewPanel() {
+  const el = document.getElementById('review-panel');
+  if (!el) return;
+
+  const plan = weekPlan;
+  const status = plan ? plan.status : 'planning';
+  const isComplete = status === 'complete';
+  const isActive = status === 'active';
+  const readonly = isComplete ? 'readonly' : '';
+  const btnDisabled = isComplete ? 'disabled' : '';
+
+  const badgeClass = status === 'complete' ? 'badge-complete' : status === 'active' ? 'badge-active' : 'badge-planning';
+  const badgeLabel = status === 'complete' ? 'Closed' : status === 'active' ? 'Active' : 'Planning';
+
+  // Hit rate section (complete weeks show it, active/planning show focus count)
+  let hitSection = '';
+  if (isComplete && focusTaskData) {
+    const { doneCount, totalCount } = focusTaskData;
+    const hitPct = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
+    hitSection = `
+      <div class="hit-strip">
+        <div>
+          <div class="hit-num">${doneCount}<span style="font-size:20px;color:var(--text2)">/${totalCount}</span></div>
+          <div class="hit-label">Tasks Done</div>
+        </div>
+        <div class="hit-bar-wrap">
+          <div class="hit-bar"><div class="hit-fill" style="width:${hitPct}%"></div></div>
+          <div class="hit-pct">${hitPct}% hit rate</div>
+        </div>
+      </div>`;
+  } else if (isComplete && !focusTaskData) {
+    hitSection = `<div class="hit-strip" style="color:var(--text3);font-size:11px">Loading results...</div>`;
+  } else if (isActive) {
+    const focusCount = projectData.reduce((n, p) => n + p.tasks.filter(t => isThisWeek(t.cur)).length, 0);
+    hitSection = `
+      <div style="font-size:11px;color:var(--text2);padding:10px 0">
+        ${focusCount} task${focusCount !== 1 ? 's' : ''} in focus this week
+      </div>`;
+  }
+
+  // Energy level buttons
+  const curEnergy = plan ? plan.energyLevel : '';
+  const energyBtns = ['low', 'medium', 'high'].map(lvl => {
+    const active = curEnergy === lvl ? ` active-${lvl}` : '';
+    return `<button class="energy-btn${active}" ${btnDisabled} onclick="setEnergyLevel('${lvl}')">${lvl}</button>`;
+  }).join('');
+
+  const keyOutcomesVal = (plan && plan.keyOutcomes) || '';
+  const reflectionVal = (plan && plan.reflection) || '';
+
+  el.innerHTML = `
+    <div class="review-header">
+      <div class="review-header-left">
+        <span class="review-title">Week Review</span>
+        <span class="review-status-badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+    </div>
+    <div class="review-body">
+      ${hitSection}
+      <div class="review-field">
+        <div class="field-label">Key Outcomes</div>
+        <textarea class="field-textarea" id="field-outcomes" rows="3" ${readonly}
+          placeholder="What did you ship or move forward this week?"
+          onblur="patchPlanField('keyOutcomes', this.value)">${escHtml(keyOutcomesVal)}</textarea>
+      </div>
+      <div class="review-field">
+        <div class="field-label">Reflection</div>
+        <textarea class="field-textarea" id="field-reflection" rows="3" ${readonly}
+          placeholder="What worked? What didn't? What to change?"
+          onblur="patchPlanField('reflection', this.value)">${escHtml(reflectionVal)}</textarea>
+      </div>
+      <div class="review-field">
+        <div class="field-label">Energy Level</div>
+        <div class="energy-toggle">${energyBtns}</div>
+      </div>
+      <div class="review-actions">
+        <span class="agent-row" id="agent-row">— updates logged via Telegram</span>
+        ${!isComplete ? `<button class="close-week-btn" onclick="closeWeek()">Close Week</button>` : ''}
+      </div>
+    </div>
+  `;
+
+  el.style.display = '';
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function loadFocusTasks() {
+  if (!weekPlanId) return;
+  try {
+    focusTaskData = await api('GET', `/api/notion?resource=focus-tasks&id=${weekPlanId}`);
+    renderReviewPanel();
+  } catch (e) {
+    console.error('loadFocusTasks:', e);
+  }
+}
+
+async function patchPlanField(field, value) {
+  if (!weekPlanId || !weekPlan || weekPlan.status === 'complete') return;
+  const prev = weekPlan[field] || '';
+  if (value === prev) return;
+  weekPlan[field] = value;
+  try {
+    await api('PATCH', `/api/notion?resource=weekly&id=${weekPlanId}`, { [field]: value });
+  } catch (e) {
+    console.error('patchPlanField:', e);
+    showToast('Save failed');
+  }
+}
+
+async function setEnergyLevel(level) {
+  if (!weekPlanId || !weekPlan || weekPlan.status === 'complete') return;
+  const current = weekPlan.energyLevel;
+  // Toggle off if already selected
+  const newLevel = current === level ? null : level;
+  weekPlan.energyLevel = newLevel || '';
+  try {
+    await api('PATCH', `/api/notion?resource=weekly&id=${weekPlanId}`, { energyLevel: newLevel || '' });
+    renderReviewPanel();
+  } catch (e) {
+    console.error('setEnergyLevel:', e);
+    showToast('Save failed');
+  }
+}
+
+async function closeWeek() {
+  if (!weekPlanId) return;
+  const outcomes = document.getElementById('field-outcomes');
+  const reflection = document.getElementById('field-reflection');
+  if (outcomes) await patchPlanField('keyOutcomes', outcomes.value);
+  if (reflection) await patchPlanField('reflection', reflection.value);
+
+  const ok = confirm('Close this week? The plan grid will become read-only.');
+  if (!ok) return;
+
+  try {
+    await api('PATCH', `/api/notion?resource=weekly&id=${weekPlanId}`, { status: 'complete' });
+    weekPlan.status = 'complete';
+    render();
+
+    // Load focus task results for the hit rate
+    if ((weekPlan.focusTasks || []).length) {
+      renderReviewPanel(); // show loading state
+      loadFocusTasks();
+    } else {
+      renderReviewPanel();
+    }
+
+    showToast('Week closed');
+  } catch (e) {
+    console.error('closeWeek:', e);
+    showToast('Close failed');
+  }
+}
+
 // ── Week nav ──
 
 function changeWeek(dir) {
   weekOffset += dir;
   projectData = [];
+  weekPlan = null;
+  focusTaskData = null;
   init();
 }
 
