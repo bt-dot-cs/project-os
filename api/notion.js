@@ -226,6 +226,8 @@ function mapWeeklyPlan(page) {
   const p = page.properties;
   let timeBudgets = {};
   try { timeBudgets = JSON.parse(gt(p['Time Budgets']) || '{}'); } catch (_) {}
+  let reviewNotes = {};
+  try { reviewNotes = JSON.parse(gt(p['Review Notes']) || '{}'); } catch (_) {}
   return {
     notionId: page.id,
     name: gti(p.Name),
@@ -237,6 +239,7 @@ function mapWeeklyPlan(page) {
     focusTasks: grel(p['Focus Tasks']),
     activeProjects: grel(p['Active Projects']),
     timeBudgets,
+    reviewNotes,
   };
 }
 
@@ -256,7 +259,7 @@ async function getOrCreateWeeklyPlan(weekStart) {
 }
 
 async function updateWeeklyPlan(id, body) {
-  const { status, keyOutcomes, reflection, energyLevel, focusTaskIds, activeProjectIds, timeBudgets } = body;
+  const { status, keyOutcomes, reflection, energyLevel, focusTaskIds, activeProjectIds, timeBudgets, reviewNotes } = body;
   const props = {};
   if (status !== undefined) props.Status = bs(status);
   if (keyOutcomes !== undefined) props['Key Outcomes'] = brt(keyOutcomes);
@@ -265,6 +268,7 @@ async function updateWeeklyPlan(id, body) {
   if (focusTaskIds) props['Focus Tasks'] = brel(focusTaskIds);
   if (activeProjectIds) props['Active Projects'] = brel(activeProjectIds);
   if (timeBudgets !== undefined) props['Time Budgets'] = brt(JSON.stringify(timeBudgets));
+  if (reviewNotes !== undefined) props['Review Notes'] = brt(JSON.stringify(reviewNotes));
   const page = await nfetch('PATCH', `/pages/${id}`, { properties: props });
   return mapWeeklyPlan(page);
 }

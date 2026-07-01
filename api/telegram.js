@@ -290,22 +290,23 @@ module.exports = async (req, res) => {
 
   // Only accept POST for webhook events
   if (req.method !== 'POST') {
-    res.status(200).json({ ok: true }); // always 200 to Telegram
+    res.status(200).json({ ok: true });
     return;
   }
 
-  // Always respond 200 immediately — Telegram retries on non-200
-  res.status(200).json({ ok: true });
-
   const update = req.body;
   const message = update?.message;
-  if (!message) return;
+  if (!message) {
+    res.status(200).json({ ok: true });
+    return;
+  }
 
   const chatId = String(message.chat?.id || '');
 
   // Only process messages from our known chat
   if (CHAT_ID && chatId !== String(CHAT_ID)) {
     console.warn('[telegram] ignored message from unknown chat:', chatId);
+    res.status(200).json({ ok: true });
     return;
   }
 
@@ -314,18 +315,19 @@ module.exports = async (req, res) => {
 
   try {
     if (message.voice) {
-      // Voice note → transcribe
       inputType = 'voice';
       console.log('[telegram] transcribing voice note...');
       rawText = await transcribeVoice(message.voice.file_id);
       if (!rawText) {
         await tgSend(chatId, 'Could not transcribe voice note — try again or send as text.');
+        res.status(200).json({ ok: true });
         return;
       }
     } else if (message.text) {
       rawText = message.text;
     } else {
       await tgSend(chatId, 'Only text and voice messages are supported.');
+      res.status(200).json({ ok: true });
       return;
     }
 
@@ -348,4 +350,6 @@ module.exports = async (req, res) => {
       await tgSend(chatId, `Error processing update: ${err.message.slice(0, 200)}`);
     } catch (_) {}
   }
+
+  res.status(200).json({ ok: true });
 };

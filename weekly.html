@@ -561,8 +561,8 @@ body.week-closed .week-closed-tag {
 
 <div class="topbar">
   <div class="topbar-title">Week <span>Plan</span></div>
-  <a href="/projects.html" class="topbar-link">Projects</a>
-  <a href="/pm.html" class="topbar-link">PM</a>
+  <a href="projects.html" class="topbar-link">Projects</a>
+  <a href="pm.html" class="topbar-link">PM</a>
   <div class="week-nav">
     <button class="nav-btn" onclick="changeWeek(-1)" title="Previous week">‹</button>
     <span class="week-label" id="week-label">—</span>
@@ -916,6 +916,7 @@ function renderReviewPanel() {
 
   const keyOutcomesVal = (plan && plan.keyOutcomes) || '';
   const reflectionVal = (plan && plan.reflection) || '';
+  const rn = (plan && plan.reviewNotes) || {};
 
   el.innerHTML = `
     <div class="review-header">
@@ -937,6 +938,30 @@ function renderReviewPanel() {
         <textarea class="field-textarea" id="field-reflection" rows="3" ${readonly}
           placeholder="What worked? What didn't? What to change?"
           onblur="patchPlanField('reflection', this.value)">${escHtml(reflectionVal)}</textarea>
+      </div>
+      <div class="review-field">
+        <div class="field-label">Who I Met <span style="color:var(--text3);font-weight:300">— optional</span></div>
+        <textarea class="field-textarea" id="field-whomet" rows="2" ${readonly}
+          placeholder="People you connected with, where, what came of it"
+          onblur="patchReviewNote('whoMet', this.value)">${escHtml(rn.whoMet || '')}</textarea>
+      </div>
+      <div class="review-field">
+        <div class="field-label">What I Learned <span style="color:var(--text3);font-weight:300">— optional</span></div>
+        <textarea class="field-textarea" id="field-learned" rows="2" ${readonly}
+          placeholder="Ideas, concepts, tools, or surprises"
+          onblur="patchReviewNote('whatLearned', this.value)">${escHtml(rn.whatLearned || '')}</textarea>
+      </div>
+      <div class="review-field">
+        <div class="field-label">How I Failed <span style="color:var(--text3);font-weight:300">— optional</span></div>
+        <textarea class="field-textarea" id="field-failed" rows="2" ${readonly}
+          placeholder="Mistakes, misjudgments, or things that fell short"
+          onblur="patchReviewNote('howFailed', this.value)">${escHtml(rn.howFailed || '')}</textarea>
+      </div>
+      <div class="review-field">
+        <div class="field-label">What I'm Curious About <span style="color:var(--text3);font-weight:300">— optional</span></div>
+        <textarea class="field-textarea" id="field-curious" rows="2" ${readonly}
+          placeholder="Questions, threads to pull, things to explore next"
+          onblur="patchReviewNote('curious', this.value)">${escHtml(rn.curious || '')}</textarea>
       </div>
       <div class="review-field">
         <div class="field-label">Energy Level</div>
@@ -975,6 +1000,19 @@ async function patchPlanField(field, value) {
     await api('PATCH', `/api/notion?resource=weekly&id=${weekPlanId}`, { [field]: value });
   } catch (e) {
     console.error('patchPlanField:', e);
+    showToast('Save failed');
+  }
+}
+
+async function patchReviewNote(key, value) {
+  if (!weekPlanId || !weekPlan || weekPlan.status === 'complete') return;
+  if (!weekPlan.reviewNotes) weekPlan.reviewNotes = {};
+  if (value === (weekPlan.reviewNotes[key] || '')) return;
+  weekPlan.reviewNotes[key] = value;
+  try {
+    await api('PATCH', `/api/notion?resource=weekly&id=${weekPlanId}`, { reviewNotes: weekPlan.reviewNotes });
+  } catch (e) {
+    console.error('patchReviewNote:', e);
     showToast('Save failed');
   }
 }

@@ -718,7 +718,8 @@ body {
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-title">Project <span>PM</span></div>
-  <a class="topbar-link" href="projects.html">← Dashboard</a>
+  <a class="topbar-link" href="projects.html">Projects</a>
+  <a class="topbar-link" href="weekly.html">Weekly</a>
   <div class="week-nav">
     <button class="week-btn" onclick="shiftWeek(-1)">‹</button>
     <div class="week-label" id="week-label">—</div>
@@ -844,18 +845,13 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-// ── PROJECT DEFINITIONS (synced with projects.html colors) ──
-const PROJECTS = [
-  { id: 'dinnerds',     name: 'Dinnerds',               color: '#c8b97a', type: 'Community' },
-  { id: 'networking-ea',name: 'Networking EA',           color: '#c8b97a', type: 'Personal Tool' },
-  { id: 'hoami',        name: 'HOAMI',                   color: '#c49060', type: 'Consumer App' },
-  { id: 'nutripuzzle',  name: 'NutriPuzzle',             color: '#7aab8a', type: 'Consumer App' },
-  { id: 'tend',         name: 'Tend',                    color: '#a08abf', type: 'Consumer App' },
-  { id: 'knowledge-graph', name: 'Knowledge Graph DB',  color: '#7a9abf', type: 'Personal Tool' },
-  { id: 'flaneur',      name: 'Flaneur Tour du Jour',    color: '#8fa89e', type: 'Video Series' },
-];
+// ── PALETTE — assigned in load order ──
+const PALETTE = ['#c8a84a','#6a9e7a','#6a8aaf','#8a72a8','#b87a40','#b06a5a','#9a9890','#c8b97a'];
 
-// ── SEED DATA ──
+// ── PROJECTS (loaded from Notion on init) ──
+let PROJECTS = []; // { notionId, name, status, progress, nextStep, dir, color }
+
+// ── SEED DATA (unused after Notion load; kept as emergency fallback structure reference) ──
 const SEED = {
   'dinnerds': {
     milestones: [
@@ -958,7 +954,7 @@ const SEED = {
 };
 
 // ── STATE ──
-let activeProj = 'networking-ea';
+let activeProj = null; // notionId of selected project
 let weekOffset = 0;
 let editingTaskId = null;
 let editingMsId = null;
@@ -974,7 +970,7 @@ function getProjData(pid) {
 async function loadProjData(pid) {
   const pd = getProjData(pid);
   if (pd.loaded) return pd;
-  const projName = PROJECTS.find(p => p.id === pid)?.name;
+  const projName = PROJECTS.find(p => p.notionId === pid)?.name;
   if (!projName) return pd;
   try {
     const res = await fetch(`/api/notion?resource=pm&project=${encodeURIComponent(projName)}`);
@@ -1060,12 +1056,12 @@ function renderAll() {
 
 function renderSidebar() {
   const tabs = PROJECTS.map(p => {
-    const pd = pmCache[p.id] || { tasks: [] };
+    const pd = pmCache[p.notionId] || { tasks: [] };
     const done = pd.tasks.filter(t => t.status === 'done').length;
     const total = pd.tasks.length;
     const pct = total ? Math.round(done/total*100) : 0;
-    return `<div class="proj-tab ${p.id === activeProj ? 'active' : ''}"
-      style="--proj-color:${p.color}" onclick="switchProj('${p.id}')">
+    return `<div class="proj-tab ${p.notionId === activeProj ? 'active' : ''}"
+      style="--proj-color:${p.color}" onclick="switchProj('${p.notionId}')">
       <div class="proj-dot" style="background:${p.color}"></div>
       <div class="proj-name">${p.name}</div>
       <div class="proj-progress-mini">${pct}%</div>
@@ -1085,7 +1081,8 @@ function renderSidebar() {
 }
 
 function renderProject() {
-  const p = PROJECTS.find(x => x.id === activeProj);
+  const p = PROJECTS.find(x => x.notionId === activeProj);
+  if (!p) return;
   const pd = pmCache[activeProj] || { tasks: [], milestones: [] };
 
   // header
@@ -1096,7 +1093,7 @@ function renderProject() {
           <div class="dot" style="background:${p.color}"></div>
           ${p.name}
         </div>
-        <div class="proj-header-meta">${p.type} · ${pd.tasks.length} tasks · ${pd.milestones.length} milestones</div>
+        <div class="proj-header-meta">${p.status} · ${pd.tasks.length} tasks · ${pd.milestones.length} milestones</div>
       </div>
       <div class="proj-header-right">
         <button class="add-btn add-btn-ghost" style="--proj-color:${p.color}" onclick="openMilestoneModal()">+ Milestone</button>
@@ -1272,7 +1269,7 @@ async function saveTask() {
   if (!title) { showToast('Title required'); return; }
 
   const pd = getProjData(activeProj);
-  const projName = PROJECTS.find(p => p.id === activeProj)?.name;
+  const projName = PROJECTS.find(p => p.notionId === activeProj)?.name;
   const taskData = {
     title,
     desc: document.getElementById('t-desc').value.trim(),
@@ -1335,7 +1332,7 @@ async function saveMilestone() {
   if (!name) { showToast('Name required'); return; }
 
   const pd = getProjData(activeProj);
-  const projName = PROJECTS.find(p => p.id === activeProj)?.name;
+  const projName = PROJECTS.find(p => p.notionId === activeProj)?.name;
   const msData = {
     name,
     date: document.getElementById('ms-date').value,
@@ -1403,8 +1400,24 @@ document.addEventListener('keydown', e => {
 // ── INIT ──
 async function init() {
   updateWeekLabel();
+  try {
+    const res = await fetch('/api/notion?resource=projects');
+    if (res.ok) {
+      const data = await res.json();
+      PROJECTS = data.map((p, i) => ({ ...p, color: PALETTE[i % PALETTE.length] }));
+    }
+  } catch (e) {
+    console.warn('Failed to load projects from Notion', e);
+  }
+  if (!PROJECTS.length) {
+    document.getElementById('proj-tabs').innerHTML = '<div style="color:var(--text3);font-size:11px;padding:12px 0">No projects in Notion</div>';
+    renderSidebar();
+    return;
+  }
+  activeProj = PROJECTS[0].notionId;
   renderSidebar();
-  await switchProj(activeProj);
+  await loadProjData(activeProj);
+  renderAll();
 }
 init();
 </script>
